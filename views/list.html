@@ -2,6 +2,7 @@
     <div class="px-5 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
            <h2 class="text-lg font-semibold text-gray-800">បញ្ជីបុគ្គលិក</h2>
+           <p class="text-xs text-gray-500 mt-0.5">គ្រប់គ្រងឈ្មោះបុគ្គលិក និងមុខដំណែង</p>
         </div>
         <div class="w-full sm:w-auto flex flex-col sm:flex-row sm:items-center gap-2">
             <button
@@ -232,8 +233,24 @@
 
             <div>
                 <label for="modal-employee-department" class="block text-sm font-medium text-gray-700 mb-1">ផ្នែក</label>
+                <select
+                    id="modal-employee-department-select"
+                    ng-if="!isEditMode"
+                    ng-model="newEmployee.department"
+                    required
+                    class="w-full rounded-[3px] border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                    <option value="">ជ្រើសរើសផ្នែក</option>
+                    <option
+                        ng-repeat="dept in activeDepartmentNameOptions track by dept.id"
+                        ng-value="dept.name"
+                    >
+                        {{dept.name}}
+                    </option>
+                </select>
                 <input
-                    id="modal-employee-department"
+                    id="modal-employee-department-input"
+                    ng-if="isEditMode"
                     type="text"
                     ng-model="newEmployee.department"
                     required
@@ -244,8 +261,24 @@
 
             <div>
                 <label for="modal-employee-position" class="block text-sm font-medium text-gray-700 mb-1">មុខដំណែង</label>
+                <select
+                    id="modal-employee-position-select"
+                    ng-if="!isEditMode"
+                    ng-model="newEmployee.position"
+                    required
+                    class="w-full rounded-[3px] border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                    <option value="">ជ្រើសរើសមុខដំណែង</option>
+                    <option
+                        ng-repeat="item in activeDepartmentDescriptionOptions track by item.id"
+                        ng-value="item.description"
+                    >
+                        {{item.description}}
+                    </option>
+                </select>
                 <input
-                    id="modal-employee-position"
+                    id="modal-employee-position-input"
+                    ng-if="isEditMode"
                     type="text"
                     ng-model="newEmployee.position"
                     required

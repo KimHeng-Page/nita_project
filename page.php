@@ -6,11 +6,12 @@
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.32/angular.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.32/angular-route.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <script src="app.js?v=20260224-5"></script>
+    <script src="app.js?v=20260224-19"></script>
     <script src="services/employeeService.js?v=20260224"></script>
-    <script src="services/departmentService.js?v=20260224-4"></script>
-    <script src="controllers/dashboardController.js?v=20260224"></script>
-    <script src="controllers/employeeController.js?v=20260224"></script>
+    <script src="services/departmentService.js?v=20260224-5"></script>
+    <script src="controllers/dashboardController.js?v=20260224-3"></script>
+    <script src="controllers/employeeController.js?v=20260224-4"></script>
+    <script src="controllers/attendance.js?v=20260224-10"></script>
     <link rel="icon" type="image/png" href="images/usea.png">
     <title>USEA</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -132,10 +133,13 @@
                     <i data-lucide="layout-dashboard" class="w-4 h-4" style="stroke-width: 2.5;"></i> ផ្ទាំងដើម
                 </a>
                 <a href="#/department" class="nav-link flex items-center gap-3 px-3 py-2 rounded" data-nav="department">
-                    <i data-lucide="building-2" class="w-4 h-4" style="stroke-width: 2.5;"></i> គ្រប់គ្រងផ្នែក
+                    <i data-lucide="building-2" class="w-4 h-4" style="stroke-width: 2.5;"></i> គ្រប់គ្រងផ្នែកការងារ
                 </a>
                 <a href="#/employees" class="nav-link flex items-center gap-3 px-3 py-2 rounded" data-nav="employees">
                     <i data-lucide="users" class="w-4 h-4" style="stroke-width: 2.5;"></i> ការជ្រើសរើសបុគ្គលិក
+                </a>
+                <a href="#/attendances" class="nav-link flex items-center gap-3 px-3 py-2 rounded" data-nav="attendances">
+                    <i data-lucide="clipboard-check" class="w-4 h-4" style="stroke-width: 2.5;"></i> ផ្ទាំងគ្រប់គ្រងវត្តមានបុគ្គលិក
                 </a>
                 <a href="#" class="nav-link flex items-center gap-3 px-3 py-2 rounded" data-nav="logout">
                     <i data-lucide="log-out" class="w-4 h-4" style="stroke-width: 2.5;"></i> ចាក់ចេញ
@@ -319,6 +323,9 @@
             if (route.indexOf('/department') === 0 || route.indexOf('/departments') === 0 || route.indexOf('/department.html') === 0) {
                 return 'ផ្ទាំងគ្រប់គ្រងផ្នែកការងារ';
             }
+            if (route.indexOf('/attendance') === 0 || route.indexOf('/attendances') === 0) {
+                return 'ផ្ទាំងគ្រប់គ្រងវត្តមានបុគ្គលិក';
+            }
             return 'USEA';
         }
 
@@ -341,6 +348,7 @@
             const dashboardLink = document.querySelector('.sidebar .nav-link[data-nav="dashboard"]');
             const employeeLink = document.querySelector('.sidebar .nav-link[data-nav="employees"]');
             const departmentLink = document.querySelector('.sidebar .nav-link[data-nav="department"]');
+            const attendanceLink = document.querySelector('.sidebar .nav-link[data-nav="attendances"]');
             const logoutLink = document.querySelector('.sidebar .nav-link[data-nav="logout"]');
 
             document.title = getTitleFromRoute(route);
@@ -357,6 +365,11 @@
 
             if (route.indexOf('/department') === 0 || route.indexOf('/departments') === 0 || route.indexOf('/department.html') === 0) {
                 setActiveSidebarLink(departmentLink);
+                return;
+            }
+
+            if (route.indexOf('/attendance') === 0 || route.indexOf('/attendances') === 0) {
+                setActiveSidebarLink(attendanceLink);
                 return;
             }
 

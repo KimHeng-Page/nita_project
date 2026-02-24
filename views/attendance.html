@@ -1,0 +1,346 @@
+<section class="w-full lg:col-span-3">
+    <div class="mx-auto w-full max-w-full space-y-4">
+        <div class="bg-white rounded-[5px] shadow-sm border border-gray-200 overflow-hidden">
+            <div class="px-4 sm:px-5 py-4 border-b border-gray-100 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+                <div class="min-w-0">
+                    <h2 class="text-lg font-semibold text-gray-800">បញ្ជីវត្តមាន</h2>
+                    <p class="text-xs text-gray-500 mt-0.5">គ្រប់គ្រងទិន្នន័យបុគ្គលិក</p>
+                </div>
+
+                <div class="w-full lg:w-auto flex flex-col sm:flex-row sm:items-center gap-2">
+                    <button
+                        type="button"
+                        ng-click="openCreateModal()"
+                        class="inline-flex items-center justify-center gap-1.5 rounded-[3px] bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                            <path d="M12 5v14"></path>
+                            <path d="M5 12h14"></path>
+                        </svg>
+                        បង្កើតវត្តមាន
+                    </button>
+
+                    <div class="relative w-full sm:w-72">
+                        <svg class="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <path d="M21 21l-4.35-4.35"></path>
+                        </svg>
+                        <input
+                            type="text"
+                            ng-model="attendanceSearch"
+                            placeholder="ស្វែងរកបុគ្គលិក"
+                            class="w-full rounded-[3px] border border-gray-300 pl-9 pr-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        >
+                    </div>
+                </div>
+            </div>
+
+            <div ng-if="attendanceError" class="mx-4 sm:mx-5 mt-4 rounded-[3px] border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                {{attendanceError}}
+            </div>
+
+            <div ng-if="isLoadingAttendance" class="mx-4 sm:mx-5 mt-4 rounded-[3px] border border-blue-200 bg-blue-50 px-3 py-2 text-sm text-blue-700">
+                កំពុងផ្ទុកទិន្នន័យវត្តមាន...
+            </div>
+
+            <div class="hidden md:block overflow-x-auto">
+                <table class="min-w-full text-sm">
+                    <thead class="bg-gray-50 text-gray-700">
+                        <tr>
+                            <th class="px-4 py-3 text-left font-semibold">ID</th>
+                            <th class="px-4 py-3 text-left font-semibold">លេខសម្គាល់បុគ្គលិក</th>
+                            <th class="px-4 py-3 text-left font-semibold">ឈ្មោះបុគ្គលិក</th>
+                            <th class="px-4 py-3 text-left font-semibold">ម៉ោងចូល</th>
+                            <th class="px-4 py-3 text-left font-semibold">ម៉ោងចេញ</th>
+                            <th class="px-4 py-3 text-left font-semibold">ស្ថានភាព</th>
+                            <th class="px-4 py-3 text-left font-semibold">សកម្មភាព</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        <tr ng-repeat="att in attendances | filter:attendanceSearch track by att.id" class="hover:bg-gray-50">
+                            <td class="px-4 py-3 text-gray-700 whitespace-nowrap">{{att.id}}</td>
+                            <td class="px-4 py-3 text-gray-700 whitespace-nowrap">{{att.employees_id || '-'}}</td>
+                            <td class="px-4 py-3 font-medium text-gray-800">{{att.employee_name || '-'}}</td>
+                            <td class="px-4 py-3 text-gray-700 whitespace-nowrap">{{att.checkIn || '-'}}</td>
+                            <td class="px-4 py-3 text-gray-700 whitespace-nowrap">{{att.checkout || '-'}}</td>
+                            <td class="px-4 py-3">
+                                <span
+                                    ng-class="{
+                                        'bg-emerald-100 text-emerald-700 border-emerald-200': isStatusActive(att),
+                                        'bg-gray-100 text-gray-700 border-gray-300': !isStatusActive(att)
+                                    }"
+                                    class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold"
+                                >
+                                    {{getStatusText(att)}}
+                                </span>
+                            </td>
+                            <td class="px-4 py-3">
+                                <div class="inline-flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        ng-click="openEditModal(att)"
+                                        class="inline-flex items-center rounded-[3px] bg-yellow-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-1"
+                                    >
+                                        កែប្រែ
+                                    </button>
+                                    <button
+                                        type="button"
+                                        ng-click="deleteAttendance(att)"
+                                        class="inline-flex items-center rounded-[3px] bg-red-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
+                                    >
+                                        លុប
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr ng-if="(attendances | filter:attendanceSearch).length === 0">
+                            <td colspan="7" class="px-4 py-8 text-center text-sm text-gray-500 font-bold">
+                                មិនមានទិន្នន័យវត្តមាន
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="md:hidden divide-y divide-gray-100">
+                <article ng-repeat="att in attendances | filter:attendanceSearch track by att.id" class="p-4 space-y-3">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <h3 class="text-sm font-semibold text-gray-800 break-words">{{att.employee_name || '-'}}</h3>
+                            <p class="text-xs text-gray-500 mt-0.5">ID: {{att.id}} | លេខសម្គាល់បុគ្គលិក : {{att.employees_id || '-'}}</p>
+                        </div>
+                        <span
+                            ng-class="{
+                                'bg-emerald-100 text-emerald-700 border-emerald-200': isStatusActive(att),
+                                'bg-gray-100 text-gray-700 border-gray-300': !isStatusActive(att)
+                            }"
+                            class="inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-semibold"
+                        >
+                            {{getStatusText(att)}}
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-1 gap-1 text-sm text-gray-700">
+                        <p><span class="text-gray-500">ម៉ោងចូល:</span> {{att.checkIn || '-'}}</p>
+                        <p><span class="text-gray-500">ម៉ោងចេញ:</span> {{att.checkout || '-'}}</p>
+                    </div>
+
+                    <div class="inline-flex items-center gap-2">
+                        <button
+                            type="button"
+                            ng-click="openEditModal(att)"
+                            class="inline-flex items-center rounded-[3px] bg-yellow-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-orange-700"
+                        >
+                            កែប្រែ
+                        </button>
+                        <button
+                            type="button"
+                            ng-click="deleteAttendance(att)"
+                            class="inline-flex items-center rounded-[3px] bg-red-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700"
+                        >
+                            លុប
+                        </button>
+                    </div>
+                </article>
+
+                <div ng-if="(attendances | filter:attendanceSearch).length === 0" class="px-4 py-8 text-center text-sm text-gray-500 font-bold">
+                    មិនមានទិន្នន័យវត្តមាន
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div
+    ng-if="showCreateModal"
+    ng-click="closeCreateModal()"
+    class="fixed inset-0 z-[1300] bg-black/40 flex items-center justify-center p-3 sm:p-4"
+>
+    <div
+        ng-click="$event.stopPropagation()"
+        class="w-full max-w-xl bg-white rounded-[5px] shadow-xl border border-gray-200"
+    >
+        <div class="px-4 sm:px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-800">បង្កើតវត្តមាន</h3>
+            <button
+                type="button"
+                ng-click="closeCreateModal()"
+                class="text-gray-500 hover:text-gray-700 text-xl leading-none"
+            >
+                &times;
+            </button>
+        </div>
+
+        <form ng-submit="submitCreateAttendance()" novalidate class="p-4 sm:p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">លេខសម្គាល់បុគ្គលិក</label>
+                <select
+                    ng-model="createAttendance.employees_id"
+                    ng-change="syncEmployeeName(createAttendance)"
+                    ng-options="emp.id as emp.fullname for emp in employees"
+                    class="w-full rounded-[3px] border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                    <option value="">ជ្រើសរើសបុគ្គលិក</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">ឈ្មោះបុគ្គលិក</label>
+                <input
+                    type="text"
+                    ng-model="createAttendance.employee_name"
+                    readonly
+                    class="w-full rounded-[3px] border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-800"
+                >
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">ម៉ោងចូល</label>
+                <input
+                    type="datetime-local"
+                    ng-model="createAttendance.checkIn"
+                    class="w-full rounded-[3px] border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">ម៉ោងចេញ</label>
+                <input
+                    type="datetime-local"
+                    ng-model="createAttendance.checkout"
+                    class="w-full rounded-[3px] border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+            </div>
+
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">ស្ថានភាព</label>
+                <select
+                    ng-model="createAttendance.status"
+                    class="w-full rounded-[3px] border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                    <option value="active">active</option>
+                    <option value="inactive">inactive</option>
+                    <option value="present">present</option>
+                    <option value="absent">absent</option>
+                </select>
+            </div>
+
+            <div class="md:col-span-2 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+                <button
+                    type="button"
+                    ng-click="closeCreateModal()"
+                    class="rounded-[3px] border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100"
+                >
+                    បោះបង់
+                </button>
+                <button
+                    type="submit"
+                    class="rounded-[3px] bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                    រក្សាទុក
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div
+    ng-if="showEditModal && editAttendance"
+    ng-click="closeEditModal()"
+    class="fixed inset-0 z-[1300] bg-black/40 flex items-center justify-center p-3 sm:p-4"
+>
+    <div
+        ng-click="$event.stopPropagation()"
+        class="w-full max-w-xl bg-white rounded-[5px] shadow-xl border border-gray-200"
+    >
+        <div class="px-4 sm:px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-800">កែប្រែវត្តមាន</h3>
+            <button
+                type="button"
+                ng-click="closeEditModal()"
+                class="text-gray-500 hover:text-gray-700 text-xl leading-none"
+            >
+                &times;
+            </button>
+        </div>
+
+        <form ng-submit="submitEditAttendance()" novalidate class="p-4 sm:p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">លេខសម្គាល់បុគ្គលិក</label>
+                <select
+                    ng-model="editAttendance.employees_id"
+                    ng-change="syncEmployeeName(editAttendance)"
+                    ng-options="emp.id as emp.fullname for emp in employees"
+                    class="w-full rounded-[3px] border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                    <option value="">ជ្រើសរើសបុគ្គលិក</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">ឈ្មោះបុគ្គលិក</label>
+                <input
+                    type="text"
+                    ng-model="editAttendance.employee_name"
+                    readonly
+                    class="w-full rounded-[3px] border border-gray-300 bg-gray-50 px-3 py-2 text-sm text-gray-800"
+                >
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">ម៉ោងចូល</label>
+                <input
+                    type="datetime-local"
+                    ng-model="editAttendance.checkIn"
+                    class="w-full rounded-[3px] border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">ម៉ោងចេញ</label>
+                <input
+                    type="datetime-local"
+                    ng-model="editAttendance.checkout"
+                    class="w-full rounded-[3px] border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+            </div>
+
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">ស្ថានភាព</label>
+                <select
+                    ng-model="editAttendance.status"
+                    class="w-full rounded-[3px] border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                    <option value="active">active</option>
+                    <option value="inactive">inactive</option>
+                    <option value="present">present</option>
+                    <option value="absent">absent</option>
+                </select>
+            </div>
+
+            <div class="md:col-span-2 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+                <button
+                    type="button"
+                    ng-click="deleteAttendance(editAttendance)"
+                    class="rounded-[3px] bg-red-500 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+                >
+                    លុប
+                </button>
+                <button
+                    type="button"
+                    ng-click="closeEditModal()"
+                    class="rounded-[3px] border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100"
+                >
+                    បិទ
+                </button>
+                <button
+                    type="submit"
+                    class="rounded-[3px] bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                    រក្សាទុកការកែប្រែ
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

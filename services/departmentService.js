@@ -1,10 +1,13 @@
-app.controller('DepartmentController', function($scope, $http) {
+app.controller('DepartmentController', function($scope, $http, $filter) {
 
     $scope.departments = [];
+    $scope.filteredDepartments = [];
     $scope.department = {};
     $scope.editMode = false;
     $scope.showEditModal = false;
     $scope.showCreateModal = false;
+    $scope.currentPage = 1;
+    $scope.pageSize = 8;
 
     function buildDepartmentPayload(source) {
         var payload = angular.copy(source || {});
@@ -34,10 +37,50 @@ app.controller('DepartmentController', function($scope, $http) {
         return normalizeStatus(dept && dept.status) === "active";
     };
 
+    function refreshFilteredDepartments() {
+        var filtered = $filter("filter")($scope.departments, $scope.searchText);
+        $scope.filteredDepartments = $filter("orderBy")(filtered, "-id");
+
+        var totalPages = $scope.getTotalPages();
+        if ($scope.currentPage > totalPages) {
+            $scope.currentPage = totalPages;
+        }
+        if ($scope.currentPage < 1) {
+            $scope.currentPage = 1;
+        }
+    }
+
+    $scope.getTotalPages = function() {
+        var pages = Math.ceil($scope.filteredDepartments.length / $scope.pageSize);
+        return pages > 0 ? pages : 1;
+    };
+
+    $scope.getPageNumbers = function() {
+        var pages = [];
+        var total = $scope.getTotalPages();
+        for (var i = 1; i <= total; i++) {
+            pages.push(i);
+        }
+        return pages;
+    };
+
+    $scope.getPaginatedDepartments = function() {
+        var start = ($scope.currentPage - 1) * $scope.pageSize;
+        return $scope.filteredDepartments.slice(start, start + $scope.pageSize);
+    };
+
+    $scope.goToPage = function(page) {
+        if (page < 1 || page > $scope.getTotalPages()) {
+            return;
+        }
+        $scope.currentPage = page;
+    };
+
     $scope.loadDepartments = function() {
         $http.get('http://localhost:8000/api/departments')
             .then(function(response) {
                 $scope.departments = response.data;
+                refreshFilteredDepartments();
             });
     };
 
@@ -114,6 +157,15 @@ app.controller('DepartmentController', function($scope, $http) {
                 dept._statusUpdating = false;
             });
     };
+
+    $scope.$watch("searchText", function() {
+        $scope.currentPage = 1;
+        refreshFilteredDepartments();
+    });
+
+    $scope.$watchCollection("departments", function() {
+        refreshFilteredDepartments();
+    });
 
     $scope.loadDepartments();
 

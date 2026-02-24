@@ -16,13 +16,13 @@
     $scope.slideImages = [
         {
             src: "images/banner.png",
-            alt: "USEA Slide 1",
-            caption: "USEA Human Resource Dashboard"
+            alt: "ផ្ទាំងគ្រប់គ្រងធនធានមនុស្ស USEA",
+            caption: "ផ្ទាំងគ្រប់គ្រងធនធានមនុស្ស USEA"
         },
         {
             src: "images/acca.webp",
-            alt: "USEA Slide 2",
-            caption: "Manage employee information quickly"
+            alt: "ការប្រឡង acc",
+            caption: "ការប្រឡង acc"
         },
     ];
     $scope.activeSlideIndex = 0;
@@ -30,7 +30,23 @@
     var departmentChart = null;
     var positionChart = null;
     var slideTimer = null;
+    var welcomeAlertTimer = null;
     var welcomeSpeechGestureHandler = null;
+
+    function clearWelcomeAlertTimer(){
+        if (!welcomeAlertTimer) {
+            return;
+        }
+        $timeout.cancel(welcomeAlertTimer);
+        welcomeAlertTimer = null;
+    }
+
+    function scheduleWelcomeAlertAutoClose(){
+        clearWelcomeAlertTimer();
+        welcomeAlertTimer = $timeout(function(){
+            $scope.showWelcomeAlert = false;
+        }, 6000);
+    }
 
     function destroyCharts(){
         if (departmentChart) {
@@ -242,20 +258,23 @@
 
     function showLoginWelcomeOnce(){
         var welcomeText = buildWelcomeText();
+        $scope.welcomeAlertText = welcomeText;
+        $scope.showWelcomeAlert = true;
+        scheduleWelcomeAlertAutoClose();
+
         var shouldShow = $window.localStorage.getItem(DASHBOARD_WELCOME_KEY) === "1";
         if (!shouldShow) {
             return;
         }
 
         $window.localStorage.removeItem(DASHBOARD_WELCOME_KEY);
-        $scope.welcomeAlertText = welcomeText;
-        $scope.showWelcomeAlert = true;
         queueWelcomeSpeechOnFirstGesture(welcomeText);
         speakKhmerNow(welcomeText);
     }
 
     $scope.dismissWelcomeAlert = function(){
         clearWelcomeSpeechGestureHandler();
+        clearWelcomeAlertTimer();
         $scope.showWelcomeAlert = false;
     };
 
@@ -513,6 +532,7 @@
 
     $scope.$on("$destroy", function(){
         clearWelcomeSpeechGestureHandler();
+        clearWelcomeAlertTimer();
         stopSlideTimer();
         destroyCharts();
     });

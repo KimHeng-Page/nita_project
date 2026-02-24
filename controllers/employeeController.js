@@ -1,4 +1,4 @@
-app.controller("EmployeeController", function($scope, $location, $filter, $window, $timeout, EmployeeService){
+app.controller("EmployeeController", function($scope, $location, $filter, $window, $timeout, $http, EmployeeService){
 
     $scope.employees = [];
     $scope.newEmployee = createEmptyEmployee();
@@ -11,6 +11,156 @@ app.controller("EmployeeController", function($scope, $location, $filter, $windo
     $scope.isEditMode = false;
     $scope.editEmployeeId = null;
     $scope.createError = "";
+    $scope.departmentOptions = [];
+    $scope.departmentNameOptions = [];
+    $scope.activeDepartmentNameOptions = [];
+    $scope.activeDepartmentDescriptionOptions = [];
+
+    function normalizeDepartmentStatus(status){
+        if (status === true || status === 1 || status === "1") {
+            return "active";
+        }
+        if (status === false || status === 0 || status === "0") {
+            return "inactive";
+        }
+
+        var text = String(status || "").trim().toLowerCase();
+        if (text === "active" || text === "on" || text === "enabled" || text === "true") {
+            return "active";
+        }
+        return "inactive";
+    }
+
+    function extractDepartmentOptions(payload){
+        if (angular.isArray(payload)) {
+            return payload;
+        }
+
+        if (payload && angular.isArray(payload.data)) {
+            return payload.data;
+        }
+
+        if (payload && payload.data && angular.isArray(payload.data.data)) {
+            return payload.data.data;
+        }
+
+        return [];
+    }
+
+    function buildDepartmentNameOptions(options){
+        var map = {};
+
+        (options || []).forEach(function(dept){
+            var rawName = (dept && dept.name !== undefined && dept.name !== null) ? String(dept.name).trim() : "";
+            if (!rawName) {
+                return;
+            }
+
+            var key = rawName.toLowerCase();
+            var currentStatus = normalizeDepartmentStatus(dept.status);
+
+            if (!map[key]) {
+                map[key] = {
+                    id: dept.id || key,
+                    name: rawName,
+                    status: currentStatus
+                };
+                return;
+            }
+
+            // If any duplicate name is active, keep the merged option active.
+            if (currentStatus === "active") {
+                map[key].status = "active";
+            }
+        });
+
+        return Object.keys(map).map(function(key){
+            return map[key];
+        }).sort(function(a, b){
+            return a.name.localeCompare(b.name);
+        });
+    }
+
+    function buildActiveDepartmentNameOptions(options){
+        var map = {};
+
+        (options || []).forEach(function(dept){
+            if (normalizeDepartmentStatus(dept && dept.status) !== "active") {
+                return;
+            }
+
+            var rawName = (dept && dept.name !== undefined && dept.name !== null) ? String(dept.name).trim() : "";
+            if (!rawName) {
+                return;
+            }
+
+            var key = rawName.toLowerCase();
+            if (!map[key]) {
+                map[key] = {
+                    id: dept.id || key,
+                    name: rawName
+                };
+            }
+        });
+
+        return Object.keys(map).map(function(key){
+            return map[key];
+        }).sort(function(a, b){
+            return a.name.localeCompare(b.name);
+        });
+    }
+
+    function buildActiveDepartmentDescriptionOptions(options){
+        var map = {};
+
+        (options || []).forEach(function(dept){
+            if (normalizeDepartmentStatus(dept && dept.status) !== "active") {
+                return;
+            }
+
+            var rawDescription = (dept && dept.description !== undefined && dept.description !== null)
+                ? String(dept.description).trim()
+                : "";
+
+            if (!rawDescription) {
+                return;
+            }
+
+            var key = rawDescription.toLowerCase();
+            if (!map[key]) {
+                map[key] = {
+                    id: dept.id || key,
+                    description: rawDescription
+                };
+            }
+        });
+
+        return Object.keys(map).map(function(key){
+            return map[key];
+        }).sort(function(a, b){
+            return a.description.localeCompare(b.description);
+        });
+    }
+
+    function loadDepartmentOptions(){
+        return $http.get("http://127.0.0.1:8000/api/departments")
+            .then(function(response){
+                $scope.departmentOptions = extractDepartmentOptions(response.data);
+                $scope.departmentNameOptions = buildDepartmentNameOptions($scope.departmentOptions);
+                $scope.activeDepartmentNameOptions = buildActiveDepartmentNameOptions($scope.departmentOptions);
+                $scope.activeDepartmentDescriptionOptions = buildActiveDepartmentDescriptionOptions($scope.departmentOptions);
+            })
+            .catch(function(){
+                $scope.departmentOptions = [];
+                $scope.departmentNameOptions = [];
+                $scope.activeDepartmentNameOptions = [];
+                $scope.activeDepartmentDescriptionOptions = [];
+            });
+    }
+
+    $scope.isDepartmentSelectable = function(dept){
+        return normalizeDepartmentStatus(dept && dept.status) === "active";
+    };
 
     function renderLucideIcons(){
         $timeout(function(){
@@ -154,6 +304,7 @@ app.controller("EmployeeController", function($scope, $location, $filter, $windo
     }
 
     loadEmployees();
+    loadDepartmentOptions();
     renderLucideIcons();
 
     $scope.$watch("searchText", function(){

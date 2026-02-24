@@ -11,19 +11,27 @@ app.config(function($routeProvider, $locationProvider){
         redirectTo: "/dashboard"
     })
     .when("/dashboard", {
-        templateUrl: "views/dashboard.html?v=20260223",
+        templateUrl: "views/dashboard.html?v=20260224-5",
         controller: "DashboardController",
         title: "Dashboard"
     })
     .when("/employees", {
-        templateUrl: "views/list.html?v=20260221",
+        templateUrl: "views/list.html?v=20260224-5",
         controller: "EmployeeController",
         title: "Employees"
     })
     .when("/department", {
-        templateUrl: "views/department.html?v=20260224-8",
+        templateUrl: "views/department.html?v=20260224-9",
         controller: "DepartmentController",
         title: "Department"
+    })
+    .when("/attendances", {
+        templateUrl: "views/attendance.html?v=20260224-6",
+        controller: "AttendanceController",
+        title: "Attendances"
+    })
+    .when("/attendance", {
+        redirectTo: "/attendances"
     })
     .when("/department.html", {
         redirectTo: "/department"

@@ -1,0 +1,446 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.32/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.32/angular-route.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="app.js?v=20260224-5"></script>
+    <script src="services/employeeService.js?v=20260224"></script>
+    <script src="services/departmentService.js?v=20260224-4"></script>
+    <script src="controllers/dashboardController.js?v=20260224"></script>
+    <script src="controllers/employeeController.js?v=20260224"></script>
+    <link rel="icon" type="image/png" href="images/usea.png">
+    <title>USEA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600;700&display=swap');
+
+        body {
+            font-family: 'Khmer OS Siemreap', sans-serif;
+            background-color: #f4f6f9;
+            overflow-x: hidden;
+        }
+
+        .sidebar {
+            background-color: #343a40;
+            width: 250px;
+            transition: transform 0.3s ease-in-out, margin 0.3s ease-in-out;
+            z-index: 1040;
+        }
+
+        .main-content {
+            transition: margin-left 0.3s ease-in-out;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        body.sidebar-collapse .sidebar {
+            margin-left: -250px;
+        }
+
+        body.sidebar-collapse .main-content {
+            margin-left: 0 !important;
+        }
+
+        @media (max-width: 767.98px) {
+            .sidebar {
+                margin-left: -250px;
+                position: fixed;
+            }
+
+            body.sidebar-open .sidebar {
+                margin-left: 0;
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+            }
+        }
+
+        .nav-link {
+            color: #c2c7d0;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background-color: rgba(255, 255, 255, .1);
+            color: #fff;
+        }
+
+        .nav-link.active {
+            background-color: #007bff;
+        }
+
+        .main-header {
+            background-color: #fff;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .main-footer {
+            background-color: #fff;
+            border-top: 1px solid #dee2e6;
+            color: #869099;
+            padding: 1rem;
+        }
+
+        .card {
+            box-shadow: 0 0 1px rgba(0, 0, 0, .125), 0 1px 3px rgba(0, 0, 0, .2);
+            border-top: 3px solid #007bff;
+        }
+
+        #dynamic-area {
+            transition: opacity 0.2s ease-in-out;
+        }
+
+        #sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1039;
+        }
+
+        body.sidebar-open #sidebar-overlay {
+            display: block;
+        }
+    </style>
+</head>
+<body ng-app="hrApp" class="flex min-h-screen">
+    <div id="sidebar-overlay" onclick="toggleSidebar()"></div>
+    <aside class="sidebar fixed h-full flex flex-col text-sm">
+        <div class="px-4 py-3.5 border-b border-gray-700/80 bg-white/[0.02] flex items-center gap-3">
+            <img src="images/usea.png" alt="Admin Logo"
+                class="w-9 h-9 rounded-md object-cover shrink-0 ring-1 ring-white/20">
+            <div class="min-w-0 leading-tight">
+                <p class="text-white text-base font-semibold tracking-[0.12em] uppercase truncate">USEA</p>
+                <p class="text-gray-400 text-[11px] truncate">ផ្ទាំងគ្រប់គ្រងធនធានមនុស្ស</p>
+            </div>
+        </div>
+
+        <div class="p-4 overflow-y-auto flex-1">
+            <nav class="space-y-1">
+                <a href="#/dashboard" class="nav-link flex items-center gap-3 px-3 py-2 rounded" data-nav="dashboard">
+                    <i data-lucide="layout-dashboard" class="w-4 h-4" style="stroke-width: 2.5;"></i> ផ្ទាំងដើម
+                </a>
+                <a href="#/department" class="nav-link flex items-center gap-3 px-3 py-2 rounded" data-nav="department">
+                    <i data-lucide="building-2" class="w-4 h-4" style="stroke-width: 2.5;"></i> គ្រប់គ្រងផ្នែក
+                </a>
+                <a href="#/employees" class="nav-link flex items-center gap-3 px-3 py-2 rounded" data-nav="employees">
+                    <i data-lucide="users" class="w-4 h-4" style="stroke-width: 2.5;"></i> ការជ្រើសរើសបុគ្គលិក
+                </a>
+                <a href="#" class="nav-link flex items-center gap-3 px-3 py-2 rounded" data-nav="logout">
+                    <i data-lucide="log-out" class="w-4 h-4" style="stroke-width: 2.5;"></i> ចាក់ចេញ
+                </a>
+            </nav>
+        </div>
+    </aside>
+    <main class="main-content flex-1 md:ml-[250px] flex flex-col">
+        <header class="main-header p-3 flex justify-between items-center sticky top-0 z-10">
+            <div class="flex items-center gap-4">
+                <button onclick="toggleSidebar()" class="text-gray-600 hover:text-gray-900 focus:outline-none">
+                    <i data-lucide="menu"></i>
+                </button>
+            </div>
+            <div class="flex items-center gap-4 text-gray-500">
+                <button onclick="toggleFullScreen()" class="hover:text-gray-900 focus:outline-none">
+                    <i data-lucide="maximize" id="fullscreen-icon" class="w-5 h-5 cursor-pointer"></i>
+                </button>
+            </div>
+        </header>
+        <div class="p-6 flex-1">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6" ng-view>
+
+            </div>
+        </div>
+
+        <footer class="main-footer flex flex-col sm:flex-row justify-between items-center text-sm">
+            <div class="text-center sm:text-left mb-2 sm:mb-0">
+                <strong>រក្សាសិទ្ធិ &copy; ២០២៥ - ២០២៦ <a href="https://www.usea.edu.kh/" target="_blank"
+                        rel="noopener noreferrer" class="text-blue-500 hover:underline">USEA</a>.</strong>
+                រក្សាសិទ្ធិគ្រប់យ៉ាង.
+            </div>
+            <div class="text-center sm:text-right">
+                <b class="ml-2">កំណែ</b> ៣.២.០
+            </div>
+        </footer>
+    </main>
+
+    <script>
+        lucide.createIcons();
+        function toggleSidebar() {
+            const isMobile = window.innerWidth < 768;
+            if (isMobile) {
+                document.body.classList.toggle('sidebar-open');
+            } else {
+                document.body.classList.toggle('sidebar-collapse');
+            }
+        }
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.error(`Error attempting to enable full-screen mode: ${err.message}`);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+        document.addEventListener('fullscreenchange', () => {
+            const icon = document.getElementById('fullscreen-icon');
+            if (document.fullscreenElement) {
+                icon.setAttribute('data-lucide', 'minimize');
+            } else {
+                icon.setAttribute('data-lucide', 'maximize');
+            }
+            lucide.createIcons();
+        });
+        function switchInput(type) {
+            const container = document.getElementById('dynamic-area');
+            const badge = document.getElementById('active-tag-badge');
+            const label = document.getElementById('input-label');
+            const title = document.getElementById('card-title');
+
+            container.style.opacity = '0';
+
+            setTimeout(() => {
+                let newHtml = '';
+
+                switch (type) {
+                    case 'input':
+                        newHtml = `<input type="text" id="main-input" placeholder="Enter your full name..." 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded focus:border-blue-500 focus:outline-none text-sm">`;
+                        badge.innerText = 'Active: Input';
+                        badge.className = 'px-2 py-1 bg-blue-600 text-white text-[10px] uppercase font-bold rounded';
+                        label.innerText = 'Full Name';
+                        title.innerText = 'Standard Profile Input';
+                        break;
+                    case 'textarea':
+                        newHtml = `<textarea id="main-input" rows="5" placeholder="Enter your detailed biography..." 
+                                   class="w-full px-3 py-2 border border-gray-300 rounded focus:border-blue-500 focus:outline-none text-sm"></textarea>`;
+                        badge.innerText = 'Active: Textarea';
+                        badge.className = 'px-2 py-1 bg-green-600 text-white text-[10px] uppercase font-bold rounded';
+                        label.innerText = 'Biography';
+                        title.innerText = 'Extended Data Input';
+                        break;
+                    case 'select':
+                        newHtml = `<select id="main-input" class="w-full px-3 py-2 border border-gray-300 rounded focus:border-blue-500 focus:outline-none text-sm bg-white">
+                                    <option value="">-- Choose Role --</option>
+                                    <option value="Administrator">Administrator</option>
+                                    <option value="Editor">Editor</option>
+                                    <option value="Viewer">Viewer</option>
+                                   </select>`;
+                        badge.innerText = 'Active: Select';
+                        badge.className = 'px-2 py-1 bg-yellow-500 text-white text-[10px] uppercase font-bold rounded';
+                        label.innerText = 'User Role';
+                        title.innerText = 'Categorical Selection';
+                        break;
+                }
+
+                container.innerHTML = newHtml;
+                container.style.opacity = '1';
+                updateActiveState(type);
+            }, 100);
+        }
+
+        function updateActiveState(activeType) {
+            ['input', 'textarea', 'select'].forEach(t => {
+                const btn = document.getElementById(`btn-${t}`);
+                if (btn) btn.classList.remove('bg-blue-50', 'border-blue-300', 'text-blue-700');
+            });
+            const activeBtn = document.getElementById(`btn-${activeType}`);
+            if (activeBtn) activeBtn.classList.add('bg-blue-50', 'border-blue-300', 'text-blue-700');
+        }
+
+        function submitValue() {
+            const element = document.getElementById('main-input');
+            const outputBox = document.getElementById('output-box');
+            const resultText = document.getElementById('result-text');
+
+            if (!element.value || element.value.trim() === "") {
+                outputBox.classList.remove('bg-green-100', 'border-green-500', 'text-green-700');
+                outputBox.classList.add('bg-red-100', 'border-red-500', 'text-red-700');
+                resultText.innerText = "Error: Input cannot be empty.";
+            } else {
+                outputBox.classList.remove('bg-red-100', 'border-red-500', 'text-red-700');
+                outputBox.classList.add('bg-green-100', 'border-green-500', 'text-green-700');
+                resultText.innerHTML = `Data saved successfully: <strong>${element.value}</strong>`;
+            }
+            outputBox.classList.remove('hidden');
+        }
+
+        function resetForm() {
+            document.getElementById('output-box').classList.add('hidden');
+            switchInput('input');
+        }
+
+        function setActiveSidebarLink(targetLink) {
+            const links = document.querySelectorAll('.sidebar .nav-link');
+            links.forEach(link => link.classList.remove('active'));
+            if (targetLink) {
+                targetLink.classList.add('active');
+            }
+        }
+
+        function getRouteFromHash() {
+            const hash = window.location.hash || '';
+
+            if (!hash || hash === '#' || hash === '#/' || hash === '#!') {
+                return '/dashboard';
+            }
+
+            if (hash.indexOf('#!/') === 0) {
+                return hash.substring(2);
+            }
+
+            if (hash.indexOf('#/') === 0) {
+                return hash.substring(1);
+            }
+
+            return hash.replace(/^#/, '');
+        }
+
+        function getTitleFromRoute(route) {
+            if (route.indexOf('/dashboard') === 0) {
+                return 'ផ្ទាំងទំព៍រដើម';
+            }
+            if (route.indexOf('/employees') === 0) {
+                return 'ផ្ទាំងជ្រើសរើសបុគ្គលិក';
+            }
+            if (route.indexOf('/department') === 0 || route.indexOf('/departments') === 0 || route.indexOf('/department.html') === 0) {
+                return 'ផ្ទាំងគ្រប់គ្រងផ្នែកការងារ';
+            }
+            return 'USEA';
+        }
+
+        function normalizeRouteHash() {
+            const hash = window.location.hash || '';
+
+            if (!hash || hash === '#' || hash === '#/' || hash === '#!') {
+                window.location.hash = '#/dashboard';
+                return;
+            }
+
+            if (hash.indexOf('#!/') === 0) {
+                const normalized = '#/' + hash.substring(3);
+                window.location.replace(window.location.pathname + window.location.search + normalized);
+            }
+        }
+
+        function syncActiveSidebarByHash() {
+            const route = getRouteFromHash();
+            const dashboardLink = document.querySelector('.sidebar .nav-link[data-nav="dashboard"]');
+            const employeeLink = document.querySelector('.sidebar .nav-link[data-nav="employees"]');
+            const departmentLink = document.querySelector('.sidebar .nav-link[data-nav="department"]');
+            const logoutLink = document.querySelector('.sidebar .nav-link[data-nav="logout"]');
+
+            document.title = getTitleFromRoute(route);
+
+            if (route.indexOf('/dashboard') === 0) {
+                setActiveSidebarLink(dashboardLink);
+                return;
+            }
+
+            if (route.indexOf('/employees') === 0) {
+                setActiveSidebarLink(employeeLink);
+                return;
+            }
+
+            if (route.indexOf('/department') === 0 || route.indexOf('/departments') === 0 || route.indexOf('/department.html') === 0) {
+                setActiveSidebarLink(departmentLink);
+                return;
+            }
+
+            if (route === 'logout' || route === '/logout') {
+                setActiveSidebarLink(logoutLink);
+            }
+        }
+
+        document.querySelectorAll('.sidebar .nav-link').forEach(link => {
+            link.addEventListener('click', (event) => {
+                const navType = link.getAttribute('data-nav');
+
+                if (navType === 'logout') {
+                    event.preventDefault();
+                    setActiveSidebarLink(link);
+                    return;
+                }
+
+                setActiveSidebarLink(link);
+            });
+        });
+
+        normalizeRouteHash();
+        window.addEventListener('hashchange', syncActiveSidebarByHash);
+        syncActiveSidebarByHash();
+
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 768) {
+                document.body.classList.remove('sidebar-open');
+            }
+        });
+        updateActiveState('input');
+
+        document.addEventListener("click", async function (e) {
+            const logoutLink = e.target.closest('[data-nav="logout"]');
+            if (!logoutLink) return;
+
+            e.preventDefault();
+
+            const token = localStorage.getItem("auth_token");
+            const apiUrl = "http://127.0.0.1:8000/api/logout";
+
+            try {
+                if (token) {
+                    await fetch(apiUrl, {
+                        method: "POST",
+                        headers: {
+                            "Accept": "application/json",
+                            "Content-Type": "application/json",
+                            "Authorization": "Bearer " + token
+                        }
+                    });
+                }
+            } finally {
+                localStorage.removeItem("auth_token");
+                localStorage.removeItem("token_type");
+                localStorage.removeItem("auth_user");
+                window.location.href = "index.php";
+            }
+        });
+
+        (async function () {
+            const token = localStorage.getItem("auth_token");
+            if (!token) {
+                window.location.replace("index.php");
+                return;
+            }
+
+            try {
+                const res = await fetch("http://127.0.0.1:8000/api/me", {
+                    headers: {
+                        "Accept": "application/json",
+                        "Authorization": "Bearer " + token
+                    }
+                });
+
+                if (!res.ok) throw new Error();
+            } catch {
+                localStorage.removeItem("auth_token");
+                localStorage.removeItem("token_type");
+                localStorage.removeItem("auth_user");
+                window.location.replace("index.php");
+            }
+        })();
+    </script>
+</body>
+</html>

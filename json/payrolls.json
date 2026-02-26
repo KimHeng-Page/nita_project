@@ -1,0 +1,9 @@
+ {
+    "employee_id": 1,                                                                                                                   
+    "month": 2,                                                                                                                         
+    "year": 2026,                                                                                                                       
+    "base_salary": 1200.5,                                                                                                              
+    "absent_days": 1,                                                                                                                   
+    "tax": 50,                                                                                                                          
+    "final_salary": 1110.5                                                                                                              
+  }                               

@@ -1,0 +1,360 @@
+<section class="w-full lg:col-span-3 bg-white rounded-[5px] shadow-sm border border-gray-200">
+    <div class="px-5 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+            <h2 class="text-lg font-semibold text-gray-800">បញ្ជីប្រាក់បៀវត្ស</h2>
+            <p class="text-xs text-gray-500 mt-0.5">គ្រប់គ្រងទិន្នន័យប្រាក់បៀវត្សប្រចាំខែរបស់បុគ្គលិក</p>
+        </div>
+        <div class="w-full sm:w-auto flex flex-col sm:flex-row sm:items-center gap-2">
+            <button
+                type="button"
+                ng-click="openCreateModal()"
+                class="inline-flex items-center justify-center gap-1.5 rounded-[3px] bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                    <path d="M12 5v14"></path>
+                    <path d="M5 12h14"></path>
+                </svg>
+                បង្កើតទិន្នន័យ
+            </button>
+            <div class="relative w-full sm:w-72">
+                <svg class="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="M21 21l-4.35-4.35"></path>
+                </svg>
+                <input
+                    type="text"
+                    ng-model="searchText"
+                    placeholder="ស្វែងរកទិន្នន័យ"
+                    class="w-full rounded-[3px] border border-gray-300 pl-9 pr-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+            </div>
+        </div>
+    </div>
+
+    <div class="px-5 py-3 border-b border-gray-100 grid grid-cols-1 md:grid-cols-3 gap-2">
+        <select
+            ng-model="filters.month"
+            class="rounded-[3px] border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+            <option value="">ខែទាំងអស់</option>
+            <option value="1">មករា</option>
+            <option value="2">កុម្ភៈ</option>
+            <option value="3">មីនា</option>
+            <option value="4">មេសា</option>
+            <option value="5">ឧសភា</option>
+            <option value="6">មិថុនា</option>
+            <option value="7">កក្កដា</option>
+            <option value="8">សីហា</option>
+            <option value="9">កញ្ញា</option>
+            <option value="10">តុលា</option>
+            <option value="11">វិច្ឆិកា</option>
+            <option value="12">ធ្នូ</option>
+        </select>
+        <input
+            type="number"
+            ng-model="filters.year"
+            placeholder="តម្រងតាមឆ្នាំ"
+            class="rounded-[3px] border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+        <button
+            type="button"
+            ng-click="resetFilters()"
+            class="rounded-[3px] border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+        >
+            កំណត់ឡើងវិញ
+        </button>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="min-w-[1300px] w-full text-sm">
+            <thead class="bg-gray-50 text-gray-700">
+                <tr>
+                    <th class="px-5 py-3 text-left font-semibold">លេខសម្គាល់</th>
+                    <th class="px-5 py-3 text-left font-semibold">ឈ្មោះបុគ្គលិក</th>
+                    <th class="px-5 py-3 text-left font-semibold">មុខតំណែង</th>
+                    <th class="px-5 py-3 text-left font-semibold">ផ្នែក</th>
+                    <th class="px-5 py-3 text-left font-semibold">ខែ</th>
+                    <th class="px-5 py-3 text-left font-semibold">ឆ្នាំ</th>
+                    <th class="px-5 py-3 text-left font-semibold">ប្រាក់ខែមូលដ្ឋាន</th>
+                    <th class="px-5 py-3 text-left font-semibold">ថ្ងៃថែមម៉ោង</th>
+                    <th class="px-5 py-3 text-left font-semibold">ថ្ងៃអវត្តមាន</th>
+                    <th class="px-5 py-3 text-left font-semibold">ពន្ធ</th>
+                    <th class="px-5 py-3 text-left font-semibold">ប្រាក់ខែចុងក្រោយ</th>
+                    <th class="px-5 py-3 text-left font-semibold">សកម្មភាព</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                <tr
+                    ng-repeat="p in getPaginatedPayrolls() track by $index"
+                    ng-click="openDetailModal(p)"
+                    class="hover:bg-gray-50 cursor-pointer"
+                    title="ចុចដើម្បីមើលលម្អិត"
+                >
+                    <td class="px-5 py-3 text-gray-700">{{p.employee_id || '-'}}</td>
+                    <td class="px-5 py-3 font-medium text-gray-800">{{getEmployeeName(p)}}</td>
+                    <td class="px-5 py-3 font-medium text-gray-800">{{p.employee_position || '-'}}</td>
+                    <td class="px-5 py-3 font-medium text-gray-800">{{p.employee_department || '-'}}</td>
+                    <td class="px-5 py-3 font-medium text-gray-800">{{p.month || '-'}}</td>
+                    <td class="px-5 py-3 font-medium text-gray-800">{{p.year || '-'}}</td>
+                    <td class="px-5 py-3 font-medium text-gray-800">{{p.base_salary | number:2}}</td>
+                    <td class="px-5 py-3 font-medium text-gray-800">{{p.ot_day || 0}}</td>
+                    <td class="px-5 py-3 font-medium text-gray-800">{{p.absent_days || 0}}</td>
+                    <td class="px-5 py-3 font-medium text-gray-800">{{p.tax || 0}}</td>
+                    <td class="px-5 py-3 font-semibold text-emerald-700">{{p.final_salary | number:2}}</td>
+                    <td class="px-5 py-3">
+                        <button
+                            type="button"
+                            ng-click="$event.stopPropagation(); openEditModal(p)"
+                            class="inline-flex items-center rounded-[3px] bg-yellow-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-1"
+                        >
+                            កែប្រែ
+                        </button>
+                        <button
+                            type="button"
+                            ng-click="$event.stopPropagation(); deletePayroll(p)"
+                            class="inline-flex items-center rounded-[3px] bg-red-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
+                        >
+                            លុប
+                        </button>
+                    </td>
+                </tr>
+                <tr ng-if="filteredPayrolls.length === 0">
+                    <td colspan="12" class="px-5 py-6 text-center text-sm text-gray-500 font-bold">
+                        មិនមានទិន្នន័យ
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="px-5 py-4 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3" ng-if="filteredPayrolls.length > 0">
+        <div class="flex items-center gap-2 text-sm text-gray-600">
+            <span>ជួរដេក:</span>
+            <select
+                ng-model="pagination.pageSize"
+                ng-change="changePageSize()"
+                ng-options="size for size in pagination.pageSizeOptions"
+                class="rounded-[3px] border border-gray-300 bg-white px-2 py-1 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            ></select>
+            <span>ទំព័រ {{pagination.currentPage}} / {{pagination.totalPages}}</span>
+        </div>
+        <div class="inline-flex items-center gap-1">
+            <button
+                type="button"
+                ng-click="prevPage()"
+                ng-disabled="pagination.currentPage === 1"
+                class="rounded-[3px] border border-gray-300 px-2.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                ថយក្រោយ
+            </button>
+            <button
+                type="button"
+                ng-repeat="page in visiblePages track by page"
+                ng-click="setPage(page)"
+                ng-class="page === pagination.currentPage ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
+                class="rounded-[3px] border px-2.5 py-1.5 text-xs font-semibold"
+            >
+                {{page}}
+            </button>
+            <button
+                type="button"
+                ng-click="nextPage()"
+                ng-disabled="pagination.currentPage === pagination.totalPages"
+                class="rounded-[3px] border border-gray-300 px-2.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                បន្ទាប់
+            </button>
+        </div>
+    </div>
+</section>
+
+<div
+    ng-if="showCreateModal"
+    ng-click="closeCreateModal()"
+    class="fixed inset-0 z-[1200] bg-black/40 flex items-center justify-center p-4"
+>
+    <div
+        ng-click="$event.stopPropagation()"
+        class="w-full max-w-3xl bg-white rounded-[5px] shadow-xl border border-gray-200"
+    >
+        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-800">{{isEditMode ? 'កែប្រែទិន្នន័យប្រាក់បៀវត្ស' : 'បង្កើតទិន្នន័យប្រាក់បៀវត្ស'}}</h3>
+            <button
+                type="button"
+                ng-click="closeCreateModal()"
+                class="text-gray-500 hover:text-gray-700 text-xl leading-none"
+            >
+                &times;
+            </button>
+        </div>
+
+        <form ng-submit="submitPayroll()" class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div ng-if="saveError" class="md:col-span-2 rounded-[3px] border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                {{saveError}}
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">បុគ្គលិក</label>
+                <select
+                    ng-model="form.employee_id"
+                    ng-options="emp.id as (emp.fullname || emp.name) for emp in employees"
+                    required
+                    class="w-full rounded-[3px] border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                    <option value="">ជ្រើសរើសបុគ្គលិក</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">ខែ</label>
+                <select
+                    ng-model="form.month"
+                    required
+                    class="w-full rounded-[3px] border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                    <option value="">ជ្រើសរើសខែ</option>
+                    <option value="1">មករា</option>
+                    <option value="2">កុម្ភៈ</option>
+                    <option value="3">មីនា</option>
+                    <option value="4">មេសា</option>
+                    <option value="5">ឧសភា</option>
+                    <option value="6">មិថុនា</option>
+                    <option value="7">កក្កដា</option>
+                    <option value="8">សីហា</option>
+                    <option value="9">កញ្ញា</option>
+                    <option value="10">តុលា</option>
+                    <option value="11">វិច្ឆិកា</option>
+                    <option value="12">ធ្នូ</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">ឆ្នាំ</label>
+                <input
+                    type="number"
+                    ng-model="form.year"
+                    required
+                    class="w-full rounded-[3px] border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">ប្រាក់ខែមូលដ្ឋាន</label>
+                <input
+                    type="number"
+                    min="0"
+                    ng-model="form.base_salary"
+                    class="w-full rounded-[3px] border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">ថ្ងៃថែមម៉ោង</label>
+                <input
+                    type="number"
+                    min="0"
+                    ng-model="form.ot_day"
+                    class="w-full rounded-[3px] border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">ថ្ងៃអវត្តមាន</label>
+                <input
+                    type="number"
+                    min="0"
+                    ng-model="form.absent_days"
+                    class="w-full rounded-[3px] border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+            </div>
+
+            <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-700 mb-1">ពន្ធ</label>
+                <input
+                    type="number"
+                    min="0"
+                    ng-model="form.tax"
+                    class="w-full rounded-[3px] border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+            </div>
+
+            <div class="md:col-span-2 flex justify-end gap-2 pt-1">
+                <button
+                    type="button"
+                    ng-click="closeCreateModal()"
+                    class="rounded-[3px] border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                >
+                    បោះបង់
+                </button>
+                <button
+                    type="submit"
+                    class="rounded-[3px] bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                    {{isEditMode ? 'រក្សាទុកការកែប្រែ' : 'បង្កើតទិន្នន័យ'}}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div
+    ng-if="showDetailModal && selectedPayroll"
+    ng-click="closeDetailModal()"
+    class="fixed inset-0 z-[1300] bg-black/40 flex items-center justify-center p-4"
+>
+    <div
+        ng-click="$event.stopPropagation()"
+        class="w-full max-w-3xl bg-white rounded-[5px] shadow-xl border border-gray-200"
+    >
+        <div class="px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-800">ព័ត៌មានលម្អិតប្រាក់បៀវត្ស</h3>
+            <button
+                type="button"
+                ng-click="closeDetailModal()"
+                class="text-gray-500 hover:text-gray-700 text-xl leading-none"
+            >
+                &times;
+            </button>
+        </div>
+
+        <div class="p-5 space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                <div class="rounded-[3px] border border-gray-200 px-3 py-2"><span class="text-gray-500">លេខសម្គាល់៖ </span><span class="text-gray-800">{{selectedPayroll.employee_id || '-'}}</span></div>
+                <div class="rounded-[3px] border border-gray-200 px-3 py-2"><span class="text-gray-500">ឈ្មោះបុគ្គលិក៖ </span><span class="text-gray-800">{{getEmployeeName(selectedPayroll)}}</span></div>
+                <div class="rounded-[3px] border border-gray-200 px-3 py-2"><span class="text-gray-500">មុខតំណែង៖ </span><span class="text-gray-800">{{selectedPayroll.employee_position || '-'}}</span></div>
+                <div class="rounded-[3px] border border-gray-200 px-3 py-2"><span class="text-gray-500">ផ្នែក៖ </span><span class="text-gray-800">{{selectedPayroll.employee_department || '-'}}</span></div>
+                <div class="rounded-[3px] border border-gray-200 px-3 py-2"><span class="text-gray-500">ខែ៖ </span><span class="text-gray-800">{{selectedPayroll.month || '-'}}</span></div>
+                <div class="rounded-[3px] border border-gray-200 px-3 py-2"><span class="text-gray-500">ឆ្នាំ៖ </span><span class="text-gray-800">{{selectedPayroll.year || '-'}}</span></div>
+                <div class="rounded-[3px] border border-gray-200 px-3 py-2"><span class="text-gray-500">ប្រាក់ខែមូលដ្ឋាន៖ </span><span class="text-gray-800">{{selectedPayroll.base_salary | number:2}}</span></div>
+                <div class="rounded-[3px] border border-gray-200 px-3 py-2"><span class="text-gray-500">ថ្ងៃថែមម៉ោង៖ </span><span class="text-gray-800">{{selectedPayroll.ot_day || 0}}</span></div>
+                <div class="rounded-[3px] border border-gray-200 px-3 py-2"><span class="text-gray-500">ថ្ងៃអវត្តមាន៖ </span><span class="text-gray-800">{{selectedPayroll.absent_days || 0}}</span></div>
+                <div class="rounded-[3px] border border-gray-200 px-3 py-2"><span class="text-gray-500">ពន្ធ៖ </span><span class="text-gray-800">{{selectedPayroll.tax || 0}}</span></div>
+                <div class="rounded-[3px] border border-emerald-200 bg-emerald-50 px-3 py-2 md:col-span-2"><span class="text-emerald-700">ប្រាក់ខែចុងក្រោយ៖ </span><span class="font-semibold text-emerald-800">{{selectedPayroll.final_salary | number:2}}</span></div>
+            </div>
+
+            <div class="flex justify-end gap-2">
+                <button
+                    type="button"
+                    ng-click="closeDetailModal()"
+                    class="rounded-[3px] border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50"
+                >
+                    បិទ
+                </button>
+                <button
+                    type="button"
+                    ng-click="openEditModal(selectedPayroll)"
+                    class="rounded-[3px] bg-yellow-500 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
+                >
+                    កែប្រែទិន្នន័យ
+                </button>
+                <button
+                    type="button"
+                    ng-click="deletePayroll(selectedPayroll)"
+                    class="rounded-[3px] bg-red-500 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+                >
+                    លុប
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

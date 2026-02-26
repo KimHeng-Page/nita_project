@@ -8,6 +8,14 @@ app.controller('DepartmentController', function($scope, $http, $filter) {
     $scope.showCreateModal = false;
     $scope.currentPage = 1;
     $scope.pageSize = 8;
+    $scope.pagination = {
+        currentPage: 1,
+        pageSize: 10,
+        pageSizeOptions: [5, 10, 20, 50],
+        totalItems: 0,
+        totalPages: 1
+    };
+    $scope.visiblePages = [];
 
     function buildDepartmentPayload(source) {
         var payload = angular.copy(source || {});
@@ -40,14 +48,37 @@ app.controller('DepartmentController', function($scope, $http, $filter) {
     function refreshFilteredDepartments() {
         var filtered = $filter("filter")($scope.departments, $scope.searchText);
         $scope.filteredDepartments = $filter("orderBy")(filtered, "-id");
+        refreshPagination();
+    }
 
-        var totalPages = $scope.getTotalPages();
-        if ($scope.currentPage > totalPages) {
-            $scope.currentPage = totalPages;
+    function buildVisiblePages(currentPage, totalPages) {
+        var pages = [];
+        var start = Math.max(1, currentPage - 2);
+        var end = Math.min(totalPages, start + 4);
+        start = Math.max(1, end - 4);
+        for (var i = start; i <= end; i++) {
+            pages.push(i);
         }
-        if ($scope.currentPage < 1) {
-            $scope.currentPage = 1;
+        return pages;
+    }
+
+    function refreshPagination() {
+        var totalItems = ($scope.filteredDepartments && $scope.filteredDepartments.length) ? $scope.filteredDepartments.length : 0;
+        var pageSize = Number($scope.pagination.pageSize) || 10;
+        var totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+
+        if ($scope.pagination.currentPage > totalPages) {
+            $scope.pagination.currentPage = totalPages;
         }
+        if ($scope.pagination.currentPage < 1) {
+            $scope.pagination.currentPage = 1;
+        }
+
+        $scope.pagination.totalItems = totalItems;
+        $scope.pagination.totalPages = totalPages;
+        $scope.currentPage = $scope.pagination.currentPage;
+        $scope.pageSize = pageSize;
+        $scope.visiblePages = buildVisiblePages($scope.pagination.currentPage, totalPages);
     }
 
     $scope.getTotalPages = function() {
@@ -56,24 +87,39 @@ app.controller('DepartmentController', function($scope, $http, $filter) {
     };
 
     $scope.getPageNumbers = function() {
-        var pages = [];
-        var total = $scope.getTotalPages();
-        for (var i = 1; i <= total; i++) {
-            pages.push(i);
-        }
-        return pages;
+        return $scope.visiblePages;
     };
 
     $scope.getPaginatedDepartments = function() {
-        var start = ($scope.currentPage - 1) * $scope.pageSize;
+        var start = ($scope.pagination.currentPage - 1) * $scope.pagination.pageSize;
         return $scope.filteredDepartments.slice(start, start + $scope.pageSize);
     };
 
     $scope.goToPage = function(page) {
-        if (page < 1 || page > $scope.getTotalPages()) {
+        if (page < 1 || page > $scope.pagination.totalPages) {
             return;
         }
+        $scope.pagination.currentPage = page;
         $scope.currentPage = page;
+        refreshPagination();
+    };
+
+    $scope.setPage = function(page) {
+        $scope.goToPage(page);
+    };
+
+    $scope.prevPage = function() {
+        $scope.goToPage($scope.pagination.currentPage - 1);
+    };
+
+    $scope.nextPage = function() {
+        $scope.goToPage($scope.pagination.currentPage + 1);
+    };
+
+    $scope.changePageSize = function() {
+        $scope.pagination.currentPage = 1;
+        $scope.currentPage = 1;
+        refreshPagination();
     };
 
     $scope.loadDepartments = function() {
@@ -132,7 +178,7 @@ app.controller('DepartmentController', function($scope, $http, $filter) {
     };
 
     $scope.deleteDepartment = function(id) {
-        if (confirm("Are you sure?")) {
+        if (confirm("តើអ្នកប្រាកដថាចង់លុបទិន្នន័យផ្នែកការងារនេះមែនទេ?")) {
             $http.delete('http://localhost:8000/api/departments/' + id)
                 .then(function() {
                     $scope.loadDepartments();
@@ -160,6 +206,7 @@ app.controller('DepartmentController', function($scope, $http, $filter) {
 
     $scope.$watch("searchText", function() {
         $scope.currentPage = 1;
+        $scope.pagination.currentPage = 1;
         refreshFilteredDepartments();
     });
 

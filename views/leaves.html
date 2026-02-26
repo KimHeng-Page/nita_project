@@ -1,0 +1,335 @@
+<section class="w-full lg:col-span-3 bg-white rounded-[5px] shadow-sm border border-gray-200">
+    <div class="px-5 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+            <h2 class="text-lg font-semibold text-gray-800">ផ្ទាំងគ្រប់គ្រងច្បាប់ឈប់សម្រាកបុគ្គលិក</h2>
+            <p class="text-xs text-gray-500 mt-0.5">គ្រប់គ្រងសំណើច្បាប់ឈប់សម្រាក និងស្ថានភាពអនុម័ត</p>
+        </div>
+        <button
+            type="button"
+            ng-click="openCreateModal()"
+            class="inline-flex items-center rounded-[3px] bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+           + បង្កើតសំណើថ្មី
+        </button>
+    </div>
+
+    <div ng-if="leaveError" class="mx-5 mt-4 rounded-[3px] border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+        {{leaveError}}
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+            <thead class="bg-gray-50 text-gray-700">
+                <tr>
+                    <th class="px-5 py-3 text-left font-semibold">ID</th>
+                    <th class="px-5 py-3 text-left font-semibold">ឈ្មោះបុគ្គលិក</th>
+                    <th class="px-5 py-3 text-left font-semibold">មុខតំណែង</th>
+                    <th class="px-5 py-3 text-left font-semibold">ប្រភេទច្បាប់</th>
+                    <th class="px-5 py-3 text-left font-semibold">ចាប់ពីថ្ងៃ</th>
+                    <th class="px-5 py-3 text-left font-semibold">ដល់ថ្ងៃ</th>
+                    <th class="px-5 py-3 text-left font-semibold">ស្ថានភាព</th>
+                    <th class="px-5 py-3 text-left font-semibold">សកម្មភាព</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                <tr ng-repeat="lv in paginatedLeaves track by lv.id" class="hover:bg-gray-50">
+                    <td class="px-5 py-3 font-medium text-gray-800">{{ lv.id }}</td>
+                    <td class="px-5 py-3 font-medium text-gray-800">{{ lv.employee.fullname || '-' }}</td>
+                    <td class="px-5 py-3 text-gray-700">{{ lv.employee.position || '-' }}</td>
+                    <td class="px-5 py-3 text-gray-700">{{ lv.leave_type || '-' }}</td>
+                    <td class="px-5 py-3 text-gray-700 whitespace-nowrap">{{ lv.start_date || '-' }}</td>
+                    <td class="px-5 py-3 text-gray-700 whitespace-nowrap">{{ lv.end_date || '-' }}</td>
+                    <td class="px-5 py-3">
+                        <span
+                            ng-class="statusClass(lv.status)"
+                            class="inline-flex rounded-[3px] px-2.5 py-1 text-xs font-semibold"
+                        >
+                            {{lv.status || '-'}}
+                        </span>
+                    </td>
+                    <td class="px-5 py-3">
+                        <div class="inline-flex items-center gap-2">
+                            <button
+                                type="button"
+                                ng-click="openEditModal(lv)"
+                                class="inline-flex items-center rounded-[3px] bg-amber-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-1"
+                            >
+                                កែប្រែ
+                            </button>
+                            <button
+                                type="button"
+                                ng-click="deleteLeave(lv)"
+                                class="inline-flex items-center rounded-[3px] bg-red-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
+                            >
+                                លុប
+                            </button>
+                            <button
+                                type="button"
+                                ng-if="isPending(lv.status)"
+                                ng-click="approve(lv.id)"
+                                class="inline-flex items-center rounded-[3px] bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1"
+                            >
+                                អនុម័ត
+                            </button>
+                            <button
+                                type="button"
+                                ng-if="isPending(lv.status)"
+                                ng-click="reject(lv.id)"
+                                class="inline-flex items-center rounded-[3px] bg-orange-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-1"
+                            >
+                                បដិសេធ
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                <tr ng-if="!leaves || leaves.length === 0">
+                    <td colspan="8" class="px-5 py-6 text-center text-sm text-gray-500 font-bold">
+                        មិនមានទិន្នន័យ
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="px-5 py-4 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3" ng-if="pagination.totalItems > 0">
+        <div class="flex items-center gap-2 text-sm text-gray-600">
+            <span>ជួរដេក:</span>
+            <select
+                ng-model="pagination.pageSize"
+                ng-change="changePageSize()"
+                ng-options="size for size in pagination.pageSizeOptions"
+                class="rounded-[3px] border border-gray-300 bg-white px-2 py-1 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            ></select>
+            <span>ទំព័រ {{pagination.currentPage}} / {{pagination.totalPages}}</span>
+        </div>
+        <div class="inline-flex items-center gap-1">
+            <button
+                type="button"
+                ng-click="prevPage()"
+                ng-disabled="pagination.currentPage === 1"
+                class="rounded-[3px] border border-gray-300 px-2.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                ថយក្រោយ
+            </button>
+            <button
+                type="button"
+                ng-repeat="page in visiblePages track by page"
+                ng-click="setPage(page)"
+                ng-class="page === pagination.currentPage ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
+                class="rounded-[3px] border px-2.5 py-1.5 text-xs font-semibold"
+            >
+                {{page}}
+            </button>
+            <button
+                type="button"
+                ng-click="nextPage()"
+                ng-disabled="pagination.currentPage === pagination.totalPages"
+                class="rounded-[3px] border border-gray-300 px-2.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                បន្ទាប់
+            </button>
+        </div>
+    </div>
+</section>
+
+<div
+    ng-if="showCreateModal"
+    ng-click="closeCreateModal()"
+    class="fixed inset-0 z-[1300] bg-black/40 flex items-center justify-center p-3 sm:p-4"
+>
+    <div
+        ng-click="$event.stopPropagation()"
+        class="w-full max-w-xl bg-white rounded-[5px] shadow-xl border border-gray-200"
+    >
+        <div class="px-4 sm:px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-800">បង្កើតសំណើច្បាប់ឈប់សម្រាក</h3>
+            <button type="button" ng-click="closeCreateModal()" class="text-gray-500 hover:text-gray-700 text-xl leading-none">&times;</button>
+        </div>
+
+        <form ng-submit="submitCreateLeave()" novalidate class="p-4 sm:p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">បុគ្គលិក</label>
+                <select
+                    ng-model="createLeaveModel.employee_id"
+                    ng-options="emp.id as emp.fullname for emp in employees"
+                    required
+                    class="w-full rounded-[3px] border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                    <option value="">ជ្រើសរើសបុគ្គលិក</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">ប្រភេទច្បាប់ឈប់សម្រាក</label>
+                <input
+                    type="text"
+                    ng-model="createLeaveModel.leave_type"
+                    required
+                    class="w-full rounded-[3px] border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">ថ្ងៃចាប់ផ្តើម</label>
+                <input
+                    type="date"
+                    ng-model="createLeaveModel.start_date"
+                    required
+                    class="w-full rounded-[3px] border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">ថ្ងៃបញ្ចប់</label>
+                <input
+                    type="date"
+                    ng-model="createLeaveModel.end_date"
+                    required
+                    class="w-full rounded-[3px] border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">ស្ថានភាព</label>
+                <select
+                    ng-model="createLeaveModel.status"
+                    required
+                    class="w-full rounded-[3px] border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                    <option value="Pending">Pending</option>
+                    <option value="Approved">Approved</option>
+                    <option value="Rejected">Rejected</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">មូលហេតុ</label>
+                <input
+                    type="text"
+                    ng-model="createLeaveModel.reason"
+                    class="w-full rounded-[3px] border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+            </div>
+
+            <div class="md:col-span-2 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+                <button
+                    type="button"
+                    ng-click="closeCreateModal()"
+                    class="rounded-[3px] border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100"
+                >
+                    បោះបង់
+                </button>
+                <button
+                    type="submit"
+                    class="rounded-[3px] bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                    រក្សាទុក
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div
+    ng-if="showEditModal"
+    ng-click="closeEditModal()"
+    class="fixed inset-0 z-[1300] bg-black/40 flex items-center justify-center p-3 sm:p-4"
+>
+    <div
+        ng-click="$event.stopPropagation()"
+        class="w-full max-w-xl bg-white rounded-[5px] shadow-xl border border-gray-200"
+    >
+        <div class="px-4 sm:px-5 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h3 class="text-lg font-semibold text-gray-800">កែប្រែសំណើច្បាប់ឈប់សម្រាក</h3>
+            <button type="button" ng-click="closeEditModal()" class="text-gray-500 hover:text-gray-700 text-xl leading-none">&times;</button>
+        </div>
+
+        <form ng-submit="submitEditLeave()" novalidate class="p-4 sm:p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">បុគ្គលិក</label>
+                <select
+                    ng-model="editLeaveModel.employee_id"
+                    ng-options="emp.id as emp.fullname for emp in employees"
+                    required
+                    class="w-full rounded-[3px] border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                    <option value="">ជ្រើសរើសបុគ្គលិក</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">ប្រភេទច្បាប់ឈប់សម្រាក</label>
+                <input
+                    type="text"
+                    ng-model="editLeaveModel.leave_type"
+                    required
+                    class="w-full rounded-[3px] border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">ថ្ងៃចាប់ផ្តើម</label>
+                <input
+                    type="date"
+                    ng-model="editLeaveModel.start_date"
+                    required
+                    class="w-full rounded-[3px] border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">ថ្ងៃបញ្ចប់</label>
+                <input
+                    type="date"
+                    ng-model="editLeaveModel.end_date"
+                    required
+                    class="w-full rounded-[3px] border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">ស្ថានភាព</label>
+                <select
+                    ng-model="editLeaveModel.status"
+                    required
+                    class="w-full rounded-[3px] border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+                    <option value="Pending">Pending</option>
+                    <option value="Approved">Approved</option>
+                    <option value="Rejected">Rejected</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">មូលហេតុ</label>
+                <input
+                    type="text"
+                    ng-model="editLeaveModel.reason"
+                    class="w-full rounded-[3px] border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                >
+            </div>
+
+            <div class="md:col-span-2 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+                <button
+                    type="button"
+                    ng-click="deleteLeave({id: editingLeaveId})"
+                    class="rounded-[3px] bg-red-500 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+                >
+                    លុប
+                </button>
+                <button
+                    type="button"
+                    ng-click="closeEditModal()"
+                    class="rounded-[3px] border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100"
+                >
+                    បិទ
+                </button>
+                <button
+                    type="submit"
+                    class="rounded-[3px] bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                    រក្សាទុកការកែប្រែ
+                </button>
+            </div>
+        </form>
+    </div>
+</div>

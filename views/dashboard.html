@@ -1,28 +1,11 @@
-<section class="w-full lg:col-span-3 space-y-6">
+﻿<section class="w-full lg:col-span-3 space-y-6">
     <div
         ng-if="showWelcomeAlert"
         class="fixed top-4 right-4 z-[1400] w-[92%] max-w-sm rounded-[5px] border border-emerald-200 bg-emerald-50 px-4 py-3 shadow-lg"
     >
-        <div class="flex items-start justify-between gap-3">
-            <div class="min-w-0">
-                <p class="text-sm font-semibold text-emerald-800">{{welcomeAlertText}}</p>
-                <p class="mt-1 text-xs text-emerald-700">សូមជូនពរឲ្យអ្នកមានសុខភាពល្អ សុភមង្គលពេញបរិបូរណ៍ និងជោគជ័យគ្រប់ភារកិច្ច</p>
-                <button
-                    type="button"
-                    ng-click="speakWelcomeNow()"
-                    class="mt-2 rounded-[3px] border border-emerald-300 bg-white px-2.5 py-1 text-xs font-semibold text-emerald-700 hover:bg-emerald-100"
-                >
-                    និយាយម្ដងទៀត
-                </button>
-            </div>
-            <button
-                type="button"
-                ng-click="dismissWelcomeAlert()"
-                class="shrink-0 rounded-[3px] p-1 text-emerald-700 hover:bg-emerald-100"
-                aria-label="Close welcome alert"
-            >
-                &times;
-            </button>
+        <div class="min-w-0">
+            <p class="text-sm font-semibold text-emerald-800">{{welcomeAlertText}}</p>
+            <p class="mt-1 text-xs text-emerald-700">សូមជូនពរឲ្យអ្នកមានសុខភាពល្អ សុភមង្គលពេញបរិបូរណ៍ និងជោគជ័យគ្រប់ភារកិច្ច</p>
         </div>
     </div>
 
@@ -95,15 +78,15 @@
             <p class="mt-2 text-3xl font-bold text-blue-900">{{dashboardStats.totalEmployees}}</p>
         </div>
         <div class="rounded-[5px] border border-emerald-200 bg-emerald-50 p-5">
-            <p class="text-sm text-emerald-700">អាយុមធ្យម</p>
-            <p class="mt-2 text-3xl font-bold text-emerald-900">{{dashboardStats.averageAge}}</p>
+            <p class="text-sm text-emerald-700">ចំនួនសំណើឈប់សម្រាក</p>
+            <p class="mt-2 text-3xl font-bold text-emerald-900">{{dashboardStats.totalLeaves}}</p>
         </div>
         <div class="rounded-[5px] border border-amber-200 bg-amber-50 p-5">
             <p class="text-sm text-amber-700">ចំនួនផ្នែក</p>
             <p class="mt-2 text-3xl font-bold text-amber-900">{{dashboardStats.totalDepartments}}</p>
         </div>
         <div class="rounded-[5px] border border-violet-200 bg-violet-50 p-5">
-            <p class="text-sm text-violet-700">ចំនួនមុខដំណែង</p>
+            <p class="text-sm text-violet-700">ចំនួនមុខតំណែង</p>
             <p class="mt-2 text-3xl font-bold text-violet-900">{{dashboardStats.totalPositions}}</p>
         </div>
     </div>
@@ -115,7 +98,7 @@
                 <a href="#/employees" class="text-sm font-medium text-blue-600 hover:text-blue-700">មើលបញ្ជី</a>
             </div>
             <div ng-if="!hasDepartmentData" class="rounded border border-dashed border-gray-200 bg-gray-50 px-3 py-8 text-center text-sm text-gray-500">
-                មិនមានទិន្នន័យសម្រាប់ផ្នែក
+                គ្មានទិន្នន័យសម្រាប់ផ្នែក
             </div>
             <div ng-if="hasDepartmentData" class="h-[320px]">
                 <canvas id="departmentChart"></canvas>
@@ -123,9 +106,9 @@
         </div>
 
         <div class="rounded-[5px] border border-gray-200 bg-white p-5 shadow-sm">
-            <h2 class="mb-4 text-lg font-semibold text-gray-800">សមាមាត្របុគ្គលិកតាមមុខដំណែង</h2>
+            <h2 class="mb-4 text-lg font-semibold text-gray-800">សមាមាត្របុគ្គលិកតាមមុខតំណែង</h2>
             <div ng-if="!hasPositionData" class="rounded border border-dashed border-gray-200 bg-gray-50 px-3 py-8 text-center text-sm text-gray-500">
-                មិនមានទិន្នន័យសម្រាប់មុខដំណែង
+                គ្មានទិន្នន័យសម្រាប់មុខតំណែង
             </div>
             <div ng-if="hasPositionData" class="h-[320px]">
                 <canvas id="positionChart"></canvas>
@@ -133,3 +116,6 @@
         </div>
     </div>
 </section>
+
+
+

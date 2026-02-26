@@ -6,21 +6,24 @@
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.32/angular.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.32/angular-route.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <script src="app.js?v=20260224-19"></script>
+    <script src="app.js?v=20260225-26"></script>
     <script src="services/employeeService.js?v=20260224"></script>
-    <script src="services/departmentService.js?v=20260224-5"></script>
-    <script src="controllers/dashboardController.js?v=20260224-3"></script>
-    <script src="controllers/employeeController.js?v=20260224-4"></script>
-    <script src="controllers/attendance.js?v=20260224-10"></script>
+    <script src="services/departmentService.js?v=20260225-15"></script>
+    <script src="controllers/dashboardController.js?v=20260225-20"></script>
+    <script src="controllers/employeeController.js?v=20260225-15"></script>
+    <script src="controllers/attendance.js?v=20260225-18"></script>
+    <script src="controllers/leavesController.js?v=20260225-13"></script>
+    <script src="services/payrollService.js?v=20260226-1"></script>
+    <script src="controllers/payrollController.js?v=20260226-1"></script>
     <link rel="icon" type="image/png" href="images/usea.png">
     <title>USEA</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Khmer:wght@300;400;500;600;700&family=Source+Sans+Pro:wght@300;400;600;700&display=swap');
 
         body {
-            font-family: 'Khmer OS Siemreap', sans-serif;
+            font-family:'Khmer OS Siemreap', sans-serif;
             background-color: #f4f6f9;
             overflow-x: hidden;
         }
@@ -130,7 +133,7 @@
         <div class="p-4 overflow-y-auto flex-1">
             <nav class="space-y-1">
                 <a href="#/dashboard" class="nav-link flex items-center gap-3 px-3 py-2 rounded" data-nav="dashboard">
-                    <i data-lucide="layout-dashboard" class="w-4 h-4" style="stroke-width: 2.5;"></i> ផ្ទាំងដើម
+                    <i data-lucide="layout-dashboard" class="w-4 h-4" style="stroke-width: 2.5;"></i> ផ្ទាំងដើមនៃប្រព័ន្ធ
                 </a>
                 <a href="#/department" class="nav-link flex items-center gap-3 px-3 py-2 rounded" data-nav="department">
                     <i data-lucide="building-2" class="w-4 h-4" style="stroke-width: 2.5;"></i> គ្រប់គ្រងផ្នែកការងារ
@@ -139,7 +142,13 @@
                     <i data-lucide="users" class="w-4 h-4" style="stroke-width: 2.5;"></i> ការជ្រើសរើសបុគ្គលិក
                 </a>
                 <a href="#/attendances" class="nav-link flex items-center gap-3 px-3 py-2 rounded" data-nav="attendances">
-                    <i data-lucide="clipboard-check" class="w-4 h-4" style="stroke-width: 2.5;"></i> ផ្ទាំងគ្រប់គ្រងវត្តមានបុគ្គលិក
+                    <i data-lucide="user-check" class="w-4 h-4" style="stroke-width: 2.5;"></i> ផ្ទាំងគ្រប់គ្រងវត្តមានបុគ្គលិក
+                </a>
+                <a href="#/leaves" class="nav-link flex items-center gap-3 px-3 py-2 rounded" data-nav="leaves">
+                    <i data-lucide="clipboard-check" class="w-4 h-4" style="stroke-width: 2.5;"></i> ការគ្រប់គ្រងច្បាប់បុគ្គលិក
+                </a>
+                <a href="#/payroll" class="nav-link flex items-center gap-3 px-3 py-2 rounded" data-nav="payroll">
+                    <i data-lucide="banknote" class="w-4 h-4" style="stroke-width: 2.5;"></i> ប្រាក់ខែបុគ្គលិក
                 </a>
                 <a href="#" class="nav-link flex items-center gap-3 px-3 py-2 rounded" data-nav="logout">
                     <i data-lucide="log-out" class="w-4 h-4" style="stroke-width: 2.5;"></i> ចាក់ចេញ
@@ -315,7 +324,7 @@
 
         function getTitleFromRoute(route) {
             if (route.indexOf('/dashboard') === 0) {
-                return 'ផ្ទាំងទំព៍រដើម';
+                return 'ផ្ទាំងទំព័រដើមនៃប្រព័ន្ធ';
             }
             if (route.indexOf('/employees') === 0) {
                 return 'ផ្ទាំងជ្រើសរើសបុគ្គលិក';
@@ -325,6 +334,12 @@
             }
             if (route.indexOf('/attendance') === 0 || route.indexOf('/attendances') === 0) {
                 return 'ផ្ទាំងគ្រប់គ្រងវត្តមានបុគ្គលិក';
+            }
+            if (route.indexOf('/leave') === 0 || route.indexOf('/leaves') === 0) {
+                return 'ផ្ទាំងគ្រប់គ្រងច្បាប់ឈប់សម្រាកបុគ្គលិក';
+            }
+            if (route.indexOf('/payroll') === 0) {
+                return 'បញ្ជីប្រាក់បៀវត្ស';
             }
             return 'USEA';
         }
@@ -349,6 +364,8 @@
             const employeeLink = document.querySelector('.sidebar .nav-link[data-nav="employees"]');
             const departmentLink = document.querySelector('.sidebar .nav-link[data-nav="department"]');
             const attendanceLink = document.querySelector('.sidebar .nav-link[data-nav="attendances"]');
+            const leaveLink = document.querySelector('.sidebar .nav-link[data-nav="leaves"]');
+            const payrollLink = document.querySelector('.sidebar .nav-link[data-nav="payroll"]');
             const logoutLink = document.querySelector('.sidebar .nav-link[data-nav="logout"]');
 
             document.title = getTitleFromRoute(route);
@@ -370,6 +387,14 @@
 
             if (route.indexOf('/attendance') === 0 || route.indexOf('/attendances') === 0) {
                 setActiveSidebarLink(attendanceLink);
+                return;
+            }
+            if (route.indexOf('/leave') === 0 || route.indexOf('/leaves') === 0) {
+                setActiveSidebarLink(leaveLink);
+                return;
+            }
+            if (route.indexOf('/payroll') === 0) {
+                setActiveSidebarLink(payrollLink);
                 return;
             }
 

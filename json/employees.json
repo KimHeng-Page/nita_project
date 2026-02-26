@@ -1,0 +1,11 @@
+                                                                                                                                       
+  {                                                                                                                                     
+    "fullname": "John Doe",                                                                                                             
+    "age": 28,                                                                                                                          
+    "address": "Phnom Penh",                                                                                                            
+    "birth": "1998-05-12",                                                                                                              
+    "email": "john.doe@example.com",                                                                                                    
+    "department": "IT",                                                                                                                 
+    "description": "Backend Developer",                                                                                                 
+    "position": "Developer"                                                                                                             
+  }       

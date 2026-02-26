@@ -1,11 +1,11 @@
-﻿app.controller("DashboardController", function($scope, $timeout, $window, $interval, EmployeeService){
+﻿app.controller("DashboardController", function($scope, $timeout, $window, $interval, $http, $q, EmployeeService){
     var DASHBOARD_WELCOME_KEY = "show_dashboard_welcome";
 
     $scope.isLoadingDashboard = true;
     $scope.dashboardError = "";
     $scope.dashboardStats = {
         totalEmployees: 0,
-        averageAge: 0,
+        totalLeaves: 0,
         totalDepartments: 0,
         totalPositions: 0
     };
@@ -16,13 +16,13 @@
     $scope.slideImages = [
         {
             src: "images/banner.png",
-            alt: "ផ្ទាំងគ្រប់គ្រងធនធានមនុស្ស USEA",
-            caption: "ផ្ទាំងគ្រប់គ្រងធនធានមនុស្ស USEA"
+            alt: "សាកលវិទ្យាល័យអាស៊ីអឺរ៉ុប USEA",
+            caption: "សាកលវិទ្យាល័យអាស៊ីអឺរ៉ុប USEA"
         },
         {
             src: "images/acca.webp",
-            alt: "ការប្រឡង acc",
-            caption: "ការប្រឡង acc"
+            alt: "កម្មវិធី ACCA",
+            caption: "កម្មវិធី ACCA"
         },
     ];
     $scope.activeSlideIndex = 0;
@@ -257,15 +257,15 @@
     }
 
     function showLoginWelcomeOnce(){
-        var welcomeText = buildWelcomeText();
-        $scope.welcomeAlertText = welcomeText;
-        $scope.showWelcomeAlert = true;
-        scheduleWelcomeAlertAutoClose();
-
         var shouldShow = $window.localStorage.getItem(DASHBOARD_WELCOME_KEY) === "1";
         if (!shouldShow) {
             return;
         }
+
+        var welcomeText = buildWelcomeText();
+        $scope.welcomeAlertText = welcomeText;
+        $scope.showWelcomeAlert = true;
+        scheduleWelcomeAlertAutoClose();
 
         $window.localStorage.removeItem(DASHBOARD_WELCOME_KEY);
         queueWelcomeSpeechOnFirstGesture(welcomeText);
@@ -388,17 +388,52 @@
         return total === null ? employees.length : total;
     }
 
-    function calculateAverageAge(employees){
-        var ages = employees
-            .map(function(emp){ return parseAge(emp.age); })
-            .filter(function(age){ return age !== null; });
+    function extractLeaves(payload){
+        if (angular.isArray(payload)) {
+            return payload;
+        }
+        if (payload && angular.isArray(payload.data)) {
+            return payload.data;
+        }
+        if (payload && payload.data && angular.isArray(payload.data.data)) {
+            return payload.data.data;
+        }
+        if (payload && angular.isArray(payload.leaves)) {
+            return payload.leaves;
+        }
+        return [];
+    }
 
-        if (!ages.length) {
-            return 0;
+    function extractTotalLeaves(payload, leaves){
+        var total = null;
+
+        if (payload) {
+            total = parseTotalValue(payload.total);
+        }
+        if (total === null && payload && payload.meta) {
+            total = parseTotalValue(payload.meta.total);
+        }
+        if (total === null && payload && payload.meta && payload.meta.pagination) {
+            total = parseTotalValue(payload.meta.pagination.total);
+        }
+        if (total === null && payload && payload.data && payload.data.meta) {
+            total = parseTotalValue(payload.data.meta.total);
+        }
+        if (total === null && payload && payload.data && payload.data.meta && payload.data.meta.pagination) {
+            total = parseTotalValue(payload.data.meta.pagination.total);
         }
 
-        var sum = ages.reduce(function(total, age){ return total + age; }, 0);
-        return Math.round((sum / ages.length) * 10) / 10;
+        return total === null ? leaves.length : total;
+    }
+
+    function loadLeavesSafe(){
+        return $http.get("http://127.0.0.1:8000/api/leaves")
+            .catch(function(){
+                return $http.get("http://localhost:8000/api/leaves");
+            })
+            .catch(function(){
+                return { data: [] };
+            });
     }
 
     function renderDepartmentChart(entries){
@@ -478,7 +513,7 @@
         });
     }
 
-    function updateDashboard(employees, totalEmployees){
+    function updateDashboard(employees, totalEmployees, totalLeaves){
         var departmentEntries = toSortedEntries(countBy(employees, function(emp){
             return emp.department;
         }, "Unknown"));
@@ -495,7 +530,7 @@
         });
 
         $scope.dashboardStats.totalEmployees = totalEmployees;
-        $scope.dashboardStats.averageAge = calculateAverageAge(employees);
+        $scope.dashboardStats.totalLeaves = totalLeaves;
         $scope.dashboardStats.totalDepartments = Object.keys(uniqueDepartments).length;
         $scope.dashboardStats.totalPositions = Object.keys(uniquePositions).length;
         $scope.hasDepartmentData = departmentEntries.length > 0;
@@ -512,12 +547,17 @@
         }, 0);
     }
 
-    EmployeeService.getAll()
-        .then(function(response){
-            var payload = response.data;
-            var employees = extractEmployees(payload);
-            var totalEmployees = extractTotalEmployees(payload, employees);
-            updateDashboard(employees, totalEmployees);
+    $q.all([EmployeeService.getAll(), loadLeavesSafe()])
+        .then(function(results){
+            var employeesPayload = results[0].data;
+            var employees = extractEmployees(employeesPayload);
+            var totalEmployees = extractTotalEmployees(employeesPayload, employees);
+
+            var leavesPayload = results[1].data;
+            var leaves = extractLeaves(leavesPayload);
+            var totalLeaves = extractTotalLeaves(leavesPayload, leaves);
+
+            updateDashboard(employees, totalEmployees, totalLeaves);
         })
         .catch(function(){
             $scope.dashboardError = "Failed to load dashboard data.";
@@ -537,3 +577,5 @@
         destroyCharts();
     });
 });
+
+

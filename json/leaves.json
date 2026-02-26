@@ -1,0 +1,8 @@
+{                                                                                                                                     
+    "employee_id": 1,                                                                                                                   
+    "leave_type": "Annual Leave",                                                                                                       
+    "start_date": "2026-03-01",                                                                                                         
+    "end_date": "2026-03-03",                                                                                                           
+    "reason": "Family trip",                                                                                                            
+    "status": "approved"
+  }   

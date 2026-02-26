@@ -6,6 +6,16 @@ angular.module("hrApp").controller("AttendanceController", function($scope, $htt
     $scope.attendanceSearch = "";
     $scope.attendanceError = "";
     $scope.isLoadingAttendance = false;
+    $scope.filteredAttendances = [];
+    $scope.paginatedAttendances = [];
+    $scope.pagination = {
+        currentPage: 1,
+        pageSize: 10,
+        pageSizeOptions: [5, 10, 20, 50],
+        totalItems: 0,
+        totalPages: 1
+    };
+    $scope.visiblePages = [];
 
     $scope.showCreateModal = false;
     $scope.showEditModal = false;
@@ -30,6 +40,16 @@ angular.module("hrApp").controller("AttendanceController", function($scope, $htt
         return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + "T" + pad(d.getHours()) + ":" + pad(d.getMinutes());
     }
 
+    function formatDateForApi(date) {
+        var pad = function(n) { return String(n).padStart(2, "0"); };
+        return date.getFullYear() + "-" + pad(date.getMonth() + 1) + "-" + pad(date.getDate()) + " " + pad(date.getHours()) + ":" + pad(date.getMinutes()) + ":00";
+    }
+
+    function formatDateForInput(date) {
+        var pad = function(n) { return String(n).padStart(2, "0"); };
+        return date.getFullYear() + "-" + pad(date.getMonth() + 1) + "-" + pad(date.getDate()) + "T" + pad(date.getHours()) + ":" + pad(date.getMinutes());
+    }
+
     function toText(value) {
         if (value === undefined || value === null) {
             return "";
@@ -41,8 +61,14 @@ angular.module("hrApp").controller("AttendanceController", function($scope, $htt
         if (angular.isArray(payload)) {
             return payload;
         }
+        if (payload && angular.isArray(payload.attendances)) {
+            return payload.attendances;
+        }
         if (payload && angular.isArray(payload.data)) {
             return payload.data;
+        }
+        if (payload && payload.data && angular.isArray(payload.data.attendances)) {
+            return payload.data.attendances;
         }
         if (payload && payload.data && angular.isArray(payload.data.data)) {
             return payload.data.data;
@@ -51,6 +77,60 @@ angular.module("hrApp").controller("AttendanceController", function($scope, $htt
             return payload.result;
         }
         return [];
+    }
+
+    function getVisiblePages(currentPage, totalPages) {
+        var pages = [];
+        var start = Math.max(1, currentPage - 2);
+        var end = Math.min(totalPages, start + 4);
+        start = Math.max(1, end - 4);
+        for (var i = start; i <= end; i++) {
+            pages.push(i);
+        }
+        return pages;
+    }
+
+    function getAttendanceSearchText(att) {
+        if (!att) {
+            return "";
+        }
+        return [
+            toText(att.id),
+            toText(att.employees_id),
+            toText(att.employee_name),
+            toText(att.checkIn),
+            toText(att.checkout),
+            toText(att.status)
+        ].join(" ").toLowerCase();
+    }
+
+    function refreshAttendancePagination() {
+        var searchTerm = toText($scope.attendanceSearch).toLowerCase();
+        var list = $scope.attendances || [];
+        var filtered = !searchTerm ? list.slice() : list.filter(function(att) {
+            return getAttendanceSearchText(att).indexOf(searchTerm) !== -1;
+        });
+
+        $scope.filteredAttendances = filtered;
+
+        var pageSize = Number($scope.pagination.pageSize) || 10;
+        var totalItems = filtered.length;
+        var totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+
+        if ($scope.pagination.currentPage > totalPages) {
+            $scope.pagination.currentPage = totalPages;
+        }
+        if ($scope.pagination.currentPage < 1) {
+            $scope.pagination.currentPage = 1;
+        }
+
+        var startIndex = ($scope.pagination.currentPage - 1) * pageSize;
+        var endIndex = startIndex + pageSize;
+
+        $scope.pagination.totalItems = totalItems;
+        $scope.pagination.totalPages = totalPages;
+        $scope.paginatedAttendances = filtered.slice(startIndex, endIndex);
+        $scope.visiblePages = getVisiblePages($scope.pagination.currentPage, totalPages);
     }
 
     function extractErrorMessage(error, fallback) {
@@ -91,17 +171,16 @@ angular.module("hrApp").controller("AttendanceController", function($scope, $htt
             return "";
         }
 
+        var parsed = new Date(text);
+        if (!isNaN(parsed.getTime())) {
+            return formatDateForInput(parsed);
+        }
+
         if (text.indexOf("T") > 0) {
             return text.substring(0, 16);
         }
         if (text.indexOf(" ") > 0) {
             return text.substring(0, 16).replace(" ", "T");
-        }
-
-        var parsed = new Date(text);
-        if (!isNaN(parsed.getTime())) {
-            var pad = function(n) { return String(n).padStart(2, "0"); };
-            return parsed.getFullYear() + "-" + pad(parsed.getMonth() + 1) + "-" + pad(parsed.getDate()) + "T" + pad(parsed.getHours()) + ":" + pad(parsed.getMinutes());
         }
         return "";
     }
@@ -109,12 +188,40 @@ angular.module("hrApp").controller("AttendanceController", function($scope, $htt
     function fromDateTimeInput(value) {
         var text = toText(value);
         if (!text) {
-            return "";
+            return null;
         }
+
+        var parsed = new Date(text);
+        if (!isNaN(parsed.getTime())) {
+            return formatDateForApi(parsed);
+        }
+
         if (text.length === 16) {
+            var parsedLocal = new Date(text);
+            if (!isNaN(parsedLocal.getTime())) {
+                return formatDateForApi(parsedLocal);
+            }
             return text.replace("T", " ") + ":00";
         }
         return text.replace("T", " ");
+    }
+
+    function inferStatusFromTimes(checkInValue, checkoutValue) {
+        var checkInText = toText(checkInValue);
+        var checkoutText = toText(checkoutValue);
+        if (!checkoutText) {
+            return "active";
+        }
+        if (!checkInText) {
+            return "inactive";
+        }
+
+        var inDate = new Date(checkInText);
+        var outDate = new Date(checkoutText);
+        if (!isNaN(inDate.getTime()) && !isNaN(outDate.getTime()) && outDate.getTime() <= inDate.getTime()) {
+            return "active";
+        }
+        return "inactive";
     }
 
     function normalizeAttendance(item, employeeMap, fallbackIndex) {
@@ -139,7 +246,7 @@ angular.module("hrApp").controller("AttendanceController", function($scope, $htt
         var status = toText(source.status);
 
         if (!status) {
-            status = checkout ? "inactive" : "active";
+            status = inferStatusFromTimes(checkIn, checkout);
         }
 
         return {
@@ -167,6 +274,13 @@ angular.module("hrApp").controller("AttendanceController", function($scope, $htt
         }
         var checkInValue = fromDateTimeInput(form.checkIn);
         var checkoutValue = fromDateTimeInput(form.checkout);
+        if (!checkInValue) {
+            checkInValue = formatDateForApi(new Date());
+        }
+        if (!checkoutValue) {
+           
+            checkoutValue = checkInValue;
+        }
         var statusValue = toText(form.status);
         var employeeNameValue = toText(form.employee_name);
 
@@ -175,9 +289,14 @@ angular.module("hrApp").controller("AttendanceController", function($scope, $htt
             employee_id: employeesId,
             employee_name: employeeNameValue,
             checkIn: checkInValue,
+            checkin: checkInValue,
             checkout: checkoutValue,
+            checkOut: checkoutValue,
             check_in: checkInValue,
+            check_in_time: checkInValue,
             check_out: checkoutValue,
+            check_out_time: checkoutValue,
+            out_time: checkoutValue,
             status: statusValue
         };
     }
@@ -205,7 +324,21 @@ angular.module("hrApp").controller("AttendanceController", function($scope, $htt
         return $http.get(API_BASE + "/employees")
             .then(function(res) {
                 var list = extractCollection(res.data).map(normalizeEmployee);
-                $scope.employees = $filter("orderBy")(list, "fullname");
+                list.sort(function(a, b) {
+                    var aId = parseInt(toText(a && a.id), 10);
+                    var bId = parseInt(toText(b && b.id), 10);
+                    var aHasNum = !isNaN(aId);
+                    var bHasNum = !isNaN(bId);
+
+                    if (aHasNum && bHasNum && aId !== bId) {
+                        return bId - aId;
+                    }
+                    if (aHasNum !== bHasNum) {
+                        return aHasNum ? -1 : 1;
+                    }
+                    return toText(b && b.id).localeCompare(toText(a && a.id));
+                });
+                $scope.employees = list;
             })
             .catch(function() {
                 $scope.employees = [];
@@ -225,10 +358,12 @@ angular.module("hrApp").controller("AttendanceController", function($scope, $htt
                     return Number(b.id || 0) - Number(a.id || 0);
                 });
                 $scope.attendances = normalized;
+                refreshAttendancePagination();
                 $scope.attendanceError = "";
             })
             .catch(function(error) {
                 $scope.attendances = [];
+                refreshAttendancePagination();
                 $scope.attendanceError = extractErrorMessage(error, "Failed to load attendances.");
             })
             .finally(function() {
@@ -241,7 +376,28 @@ angular.module("hrApp").controller("AttendanceController", function($scope, $htt
         if (text) {
             return text;
         }
-        return toText(att && att.checkout) ? "inactive" : "active";
+        return inferStatusFromTimes(att && att.checkIn, att && att.checkout);
+    };
+
+    $scope.setPage = function(page) {
+        if (!page || page < 1 || page > $scope.pagination.totalPages) {
+            return;
+        }
+        $scope.pagination.currentPage = page;
+        refreshAttendancePagination();
+    };
+
+    $scope.prevPage = function() {
+        $scope.setPage($scope.pagination.currentPage - 1);
+    };
+
+    $scope.nextPage = function() {
+        $scope.setPage($scope.pagination.currentPage + 1);
+    };
+
+    $scope.changePageSize = function() {
+        $scope.pagination.currentPage = 1;
+        refreshAttendancePagination();
     };
 
     $scope.isStatusActive = function(att) {
@@ -353,18 +509,10 @@ angular.module("hrApp").controller("AttendanceController", function($scope, $htt
         $scope.syncEmployeeName($scope.editAttendance);
 
         var payload = buildAttendancePayload($scope.editAttendance);
-        var snakePayload = angular.copy(payload);
-
         var attendanceId = $scope.editAttendance.id;
         $scope.attendanceError = "";
 
-        var putRequests = [
-            function() { return $http.put(API_BASE + "/attendances/" + attendanceId, payload); },
-            function() { return $http.put(API_BASE + "/attendances/" + attendanceId, snakePayload); },
-            function() { return $http.post(API_BASE + "/attendances/" + attendanceId, angular.extend({_method: "PUT"}, payload)); }
-        ];
-
-        return runRequestChain(putRequests, 0)
+        return updateAttendanceById(attendanceId, payload)
             .then(function() {
                 $scope.closeEditModal();
                 return loadAttendance();
@@ -374,13 +522,61 @@ angular.module("hrApp").controller("AttendanceController", function($scope, $htt
             });
     };
 
+    function updateAttendanceById(attendanceId, payload) {
+        var snakePayload = angular.copy(payload);
+        var putRequests = [
+            function() { return $http.put(API_BASE + "/attendances/" + attendanceId, payload); },
+            function() { return $http.put(API_BASE + "/attendances/" + attendanceId, snakePayload); },
+            function() { return $http.post(API_BASE + "/attendances/" + attendanceId, angular.extend({}, payload, {_method: "PUT"})); }
+        ];
+
+        return runRequestChain(putRequests, 0);
+    }
+
+    $scope.toggleAttendanceStatus = function(att) {
+        if (!att || !att.id || att._statusUpdating) {
+            return;
+        }
+
+        var turningOn = !$scope.isStatusActive(att);
+        var nowInput = getNowDateTimeLocal();
+        var existingCheckIn = toDateTimeInput(att.checkIn) || nowInput;
+        var nextCheckIn = turningOn ? nowInput : existingCheckIn;
+
+        // Some APIs validate checkout as required even for active records.
+        // Use checkIn-equivalent checkout for "on", and current time for "off".
+        var nextCheckout = turningOn ? nextCheckIn : nowInput;
+
+        var payload = buildAttendancePayload({
+            employees_id: resolveEmployeesId(att.employees_id),
+            employee_name: toText(att.employee_name),
+            checkIn: nextCheckIn,
+            checkout: nextCheckout,
+            status: turningOn ? "active" : "inactive"
+        });
+
+        att._statusUpdating = true;
+        $scope.attendanceError = "";
+
+        return updateAttendanceById(att.id, payload)
+            .then(function() {
+                return loadAttendance();
+            })
+            .catch(function(error) {
+                $scope.attendanceError = extractErrorMessage(error, "Update status failed.");
+            })
+            .finally(function() {
+                att._statusUpdating = false;
+            });
+    };
+
     $scope.deleteAttendance = function(attendance) {
         var id = attendance && attendance.id;
         if (!id) {
             return;
         }
 
-        if (!$window.confirm("Are you sure you want to delete this attendance record?")) {
+        if (!$window.confirm("តើអ្នកប្រាកដជាចង់លុបទិន្នន័យវត្តមាននេះមែនទេ?")) {
             return;
         }
 
@@ -396,6 +592,11 @@ angular.module("hrApp").controller("AttendanceController", function($scope, $htt
                 $scope.attendanceError = extractErrorMessage(error, "Delete attendance failed.");
             });
     };
+
+    $scope.$watch("attendanceSearch", function() {
+        $scope.pagination.currentPage = 1;
+        refreshAttendancePagination();
+    });
 
     loadEmployees().finally(function() {
         loadAttendance();

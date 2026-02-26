@@ -1,37 +1,70 @@
-var app = angular.module("hrApp", ["ngRoute"]);
+﻿var app = angular.module("hrApp", ["ngRoute"]);
 
-app.config(function($routeProvider, $locationProvider){
-    
+app.config(function($routeProvider, $locationProvider, $httpProvider){
     if ($locationProvider && typeof $locationProvider.hashPrefix === "function") {
         $locationProvider.hashPrefix("");
     }
+
+    $httpProvider.defaults.headers.common.Accept = "application/json";
+    $httpProvider.interceptors.push(function() {
+        return {
+            request: function(config) {
+                config.headers = config.headers || {};
+                try {
+                    var token = localStorage.getItem("auth_token");
+                    if (token && !config.headers.Authorization) {
+                        config.headers.Authorization = "Bearer " + token;
+                    }
+                } catch (e) {
+                    
+                }
+                return config;
+            }
+        };
+    });
 
     $routeProvider
     .when("/", {
         redirectTo: "/dashboard"
     })
     .when("/dashboard", {
-        templateUrl: "views/dashboard.html?v=20260224-5",
+        templateUrl: "views/dashboard.html?v=20260225-19",
         controller: "DashboardController",
-        title: "Dashboard"
+        title: "ផ្ទាំងគ្រប់គ្រង"
     })
     .when("/employees", {
-        templateUrl: "views/list.html?v=20260224-5",
+        templateUrl: "views/list.html?v=20260225-16",
         controller: "EmployeeController",
-        title: "Employees"
+        title: "គ្រប់គ្រងបុគ្គលិក"
     })
     .when("/department", {
-        templateUrl: "views/department.html?v=20260224-9",
+        templateUrl: "views/department.html?v=20260225-16",
         controller: "DepartmentController",
-        title: "Department"
+        title: "គ្រប់គ្រងផ្នែក"
     })
     .when("/attendances", {
-        templateUrl: "views/attendance.html?v=20260224-6",
+        templateUrl: "views/attendance.html?v=20260225-17",
         controller: "AttendanceController",
-        title: "Attendances"
+        title: "គ្រប់គ្រងវត្តមាន"
     })
     .when("/attendance", {
         redirectTo: "/attendances"
+    })
+    .when("/leaves", {
+        templateUrl: "views/leaves.html?v=20260225-16",
+        controller: "LeaveController",
+        title: "គ្រប់គ្រងច្បាប់ឈប់សម្រាក"
+    })
+    .when("/payroll", {
+        templateUrl: "views/paryrolle.html?v=20260226-1",
+        controller: "PayrollController",
+        title: "បញ្ជីប្រាក់បៀវត្ស"
+    })
+    .when("/paryrolle", {
+        redirectTo: "/payroll"
+    })
+    .when("/leave", {
+        redirectTo: "/leaves"
     })
     .when("/department.html", {
         redirectTo: "/department"
@@ -42,12 +75,11 @@ app.config(function($routeProvider, $locationProvider){
     .when("/add", {
         templateUrl: "views/add.html?v=20260221",
         controller: "EmployeeController",
-        title: "Add Employee"
+        title: "បន្ថែមបុគ្គលិក"
     })
     .otherwise({
         redirectTo: "/dashboard"
     });
-
 });
 
 app.run(function($rootScope, $templateCache){
@@ -76,3 +108,4 @@ app.directive("fileModel", ["$parse", function($parse){
         }
     };
 }]);
+

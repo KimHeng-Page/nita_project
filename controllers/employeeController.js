@@ -5,6 +5,14 @@ app.controller("EmployeeController", function($scope, $location, $filter, $windo
     $scope.currentPage = 1;
     $scope.pageSize = 8;
     $scope.filteredEmployees = [];
+    $scope.pagination = {
+        currentPage: 1,
+        pageSize: 10,
+        pageSizeOptions: [5, 10, 20, 50],
+        totalItems: 0,
+        totalPages: 1
+    };
+    $scope.visiblePages = [];
     $scope.showCreateModal = false;
     $scope.showDetailModal = false;
     $scope.selectedEmployee = null;
@@ -230,13 +238,37 @@ app.controller("EmployeeController", function($scope, $location, $filter, $windo
     function refreshFilteredEmployees(){
         var filtered = $filter("filter")($scope.employees, $scope.searchText);
         $scope.filteredEmployees = $filter("orderBy")(filtered, "-id");
-        var totalPages = $scope.getTotalPages();
-        if ($scope.currentPage > totalPages) {
-            $scope.currentPage = totalPages;
+        refreshPagination();
+    }
+
+    function buildVisiblePages(currentPage, totalPages){
+        var pages = [];
+        var start = Math.max(1, currentPage - 2);
+        var end = Math.min(totalPages, start + 4);
+        start = Math.max(1, end - 4);
+        for (var i = start; i <= end; i++) {
+            pages.push(i);
         }
-        if ($scope.currentPage < 1) {
-            $scope.currentPage = 1;
+        return pages;
+    }
+
+    function refreshPagination(){
+        var totalItems = ($scope.filteredEmployees && $scope.filteredEmployees.length) ? $scope.filteredEmployees.length : 0;
+        var pageSize = Number($scope.pagination.pageSize) || 10;
+        var totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+
+        if ($scope.pagination.currentPage > totalPages) {
+            $scope.pagination.currentPage = totalPages;
         }
+        if ($scope.pagination.currentPage < 1) {
+            $scope.pagination.currentPage = 1;
+        }
+
+        $scope.pagination.totalItems = totalItems;
+        $scope.pagination.totalPages = totalPages;
+        $scope.currentPage = $scope.pagination.currentPage;
+        $scope.pageSize = pageSize;
+        $scope.visiblePages = buildVisiblePages($scope.pagination.currentPage, totalPages);
     }
 
     $scope.getTotalPages = function(){
@@ -245,16 +277,11 @@ app.controller("EmployeeController", function($scope, $location, $filter, $windo
     };
 
     $scope.getPageNumbers = function(){
-        var pages = [];
-        var total = $scope.getTotalPages();
-        for (var i = 1; i <= total; i++) {
-            pages.push(i);
-        }
-        return pages;
+        return $scope.visiblePages;
     };
 
     $scope.getPaginatedEmployees = function(){
-        var start = ($scope.currentPage - 1) * $scope.pageSize;
+        var start = ($scope.pagination.currentPage - 1) * $scope.pagination.pageSize;
         return $scope.filteredEmployees.slice(start, start + $scope.pageSize);
     };
 
@@ -290,10 +317,30 @@ app.controller("EmployeeController", function($scope, $location, $filter, $windo
     };
 
     $scope.goToPage = function(page){
-        if (page < 1 || page > $scope.getTotalPages()) {
+        if (page < 1 || page > $scope.pagination.totalPages) {
             return;
         }
+        $scope.pagination.currentPage = page;
         $scope.currentPage = page;
+        refreshPagination();
+    };
+
+    $scope.setPage = function(page){
+        $scope.goToPage(page);
+    };
+
+    $scope.prevPage = function(){
+        $scope.goToPage($scope.pagination.currentPage - 1);
+    };
+
+    $scope.nextPage = function(){
+        $scope.goToPage($scope.pagination.currentPage + 1);
+    };
+
+    $scope.changePageSize = function(){
+        $scope.pagination.currentPage = 1;
+        $scope.currentPage = 1;
+        refreshPagination();
     };
 
     function loadEmployees(){
@@ -309,6 +356,7 @@ app.controller("EmployeeController", function($scope, $location, $filter, $windo
 
     $scope.$watch("searchText", function(){
         $scope.currentPage = 1;
+        $scope.pagination.currentPage = 1;
         refreshFilteredEmployees();
     });
 

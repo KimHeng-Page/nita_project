@@ -256,8 +256,8 @@
                                 <div class="mb-3">
                                     <label class="form-label">ឈ្មោះអ្នកប្រើ</label>
                                     <div class="input-icon">
-                                        <input type="text" id="login-name" class="form-control"
-                                            name="username" autocomplete="username" required ng-model="vm.username">
+                                        <input type="text" id="login-name" class="form-control" name="username"
+                                            autocomplete="username" required ng-model="vm.username">
                                         <span class="input-icon-btn" aria-hidden="true">
                                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                                 <circle cx="12" cy="8" r="4"></circle>
@@ -265,7 +265,8 @@
                                             </svg>
                                         </span>
                                     </div>
-                                    <div class="invalid-feedback d-block" ng-show="loginForm.username.$touched && loginForm.username.$invalid">
+                                    <div class="invalid-feedback d-block"
+                                        ng-show="loginForm.username.$touched && loginForm.username.$invalid">
                                         សូមបញ្ចូលឈ្មោះ
                                     </div>
                                 </div>
@@ -274,23 +275,27 @@
                                     <label class="form-label">លេខសម្ងាត់</label>
                                     <div class="input-icon">
                                         <input id="login-password" class="form-control"
-                                            ng-attr-type="{{ vm.showPassword ? 'text' : 'password' }}"
-                                            name="password" autocomplete="current-password" required ng-model="vm.password" ng-minlength="6">
+                                            ng-attr-type="{{ vm.showPassword ? 'text' : 'password' }}" name="password"
+                                            autocomplete="current-password" required ng-model="vm.password"
+                                            ng-minlength="6">
                                         <button type="button" class="input-icon-btn"
                                             ng-attr-aria-label="{{ vm.showPassword ? 'Hide password' : 'Show password' }}"
                                             ng-click="vm.togglePassword()">
-                                            <svg ng-if="!vm.showPassword" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <svg ng-if="!vm.showPassword" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2">
                                                 <rect x="5" y="10" width="14" height="10" rx="2"></rect>
                                                 <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
                                             </svg>
-                                            <svg ng-if="vm.showPassword" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <svg ng-if="vm.showPassword" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2">
                                                 <rect x="5" y="10" width="14" height="10" rx="2"></rect>
                                                 <path d="M8 10V7a4 4 0 0 1 6.5-3.1"></path>
                                                 <path d="M3 3l18 18"></path>
                                             </svg>
                                         </button>
                                     </div>
-                                    <div class="invalid-feedback d-block" ng-show="loginForm.password.$touched && loginForm.password.$invalid">
+                                    <div class="invalid-feedback d-block"
+                                        ng-show="loginForm.password.$touched && loginForm.password.$invalid">
                                         សូមបញ្ចូលលេខសម្ងាត់
                                     </div>
                                 </div>
@@ -308,80 +313,78 @@
             </div>
         </div>
     </div>
+    <script>
+        (function () {
+            if (!window.angular) return;
 
-   <script>
-(function () {
-    if (!window.angular) return;
+            angular.module("loginApp", [])
+                .controller("LoginCtrl", ["$http", "$timeout", "$window", function ($http, $timeout, $window) {
+                    var LOGIN_API = "http://127.0.0.1:8000/api/login";
 
-    angular.module("loginApp", [])
-        .controller("LoginCtrl", ["$http", "$timeout", "$window", function ($http, $timeout, $window) {
-            var LOGIN_API = "http://127.0.0.1:8000/api/login";
-
-            var vm = this;
-            vm.username = "";
-            vm.password = "";
-            vm.showPassword = false;
-            vm.isSubmitting = false;
-            vm.message = "";
-
-            vm.togglePassword = function () {
-                vm.showPassword = !vm.showPassword;
-            };
-
-            vm.signIn = function (form) {
-                if (!form || form.$invalid) return;
-
-                vm.isSubmitting = true;
-                vm.message = "កំពុងចូលប្រព័ន្ធ...";
-
-                $http({
-                    method: "POST",
-                    url: LOGIN_API,
-                    data: {
-                        username: String(vm.username || "").trim(),
-                        password: String(vm.password || "")
-                    },
-                    headers: {
-                        "Accept": "application/json",
-                        "Content-Type": "application/json"
-                    }
-                })
-                .then(function (response) {
-                    var data = response.data || {};
-
-                    if (!data.token) {
-                        vm.message = "ចូលប្រព័ន្ធបរាជ័យ";
-                        return;
-                    }
-
-                    $window.localStorage.setItem("auth_token", data.token);
-                    $window.localStorage.setItem("token_type", data.token_type || "Bearer");
-                    if (data.user) {
-                        $window.localStorage.setItem("auth_user", JSON.stringify(data.user));
-                    }
-                    $window.localStorage.setItem("show_dashboard_welcome", "1");
-
-                    vm.message = "ចូលប្រព័ន្ធជោគជ័យ";
-                    $timeout(function () {
-                        $window.location.href = "page.php#/dashboard";
-                    }, 400);
-                })
-                .catch(function (error) {
-                    if (error.status === 401) {
-                        vm.message = "ឈ្មោះអ្នកប្រើ ឬ លេខសម្ងាត់មិនត្រឹមត្រូវ";
-                    } else if (error.status === 422) {
-                        vm.message = "សូមបញ្ចូលឈ្មោះ និង លេខសម្ងាត់";
-                    } else {
-                        vm.message = "មិនអាចភ្ជាប់ទៅ API បាន";
-                    }
-                })
-                .finally(function () {
+                    var vm = this;
+                    vm.username = "";
+                    vm.password = "";
+                    vm.showPassword = false;
                     vm.isSubmitting = false;
-                });
-            };
-        }]);
-})();
-</script>
+                    vm.message = "";
 
+                    vm.togglePassword = function () {
+                        vm.showPassword = !vm.showPassword;
+                    };
+
+                    vm.signIn = function (form) {
+                        if (!form || form.$invalid) return;
+
+                        vm.isSubmitting = true;
+                        vm.message = "កំពុងចូលប្រព័ន្ធ...";
+
+                        $http({
+                            method: "POST",
+                            url: LOGIN_API,
+                            data: {
+                                username: String(vm.username || "").trim(),
+                                password: String(vm.password || "")
+                            },
+                            headers: {
+                                "Accept": "application/json",
+                                "Content-Type": "application/json"
+                            }
+                        })
+                            .then(function (response) {
+                                var data = response.data || {};
+
+                                if (!data.token) {
+                                    vm.message = "ចូលប្រព័ន្ធបរាជ័យ";
+                                    return;
+                                }
+
+                                $window.localStorage.setItem("auth_token", data.token);
+                                $window.localStorage.setItem("token_type", data.token_type || "Bearer");
+                                if (data.user) {
+                                    $window.localStorage.setItem("auth_user", JSON.stringify(data.user));
+                                }
+                                $window.localStorage.setItem("show_dashboard_welcome", "1");
+
+                                vm.message = "ចូលប្រព័ន្ធជោគជ័យ";
+                                $timeout(function () {
+                                    $window.location.href = "page.php#/dashboard";
+                                }, 400);
+                            })
+                            .catch(function (error) {
+                                if (error.status === 401) {
+                                    vm.message = "ឈ្មោះអ្នកប្រើ ឬ លេខសម្ងាត់មិនត្រឹមត្រូវ";
+                                } else if (error.status === 422) {
+                                    vm.message = "សូមបញ្ចូលឈ្មោះ និង លេខសម្ងាត់";
+                                } else {
+                                    vm.message = "មិនអាចភ្ជាប់ទៅ API បាន";
+                                }
+                            })
+                            .finally(function () {
+                                vm.isSubmitting = false;
+                            });
+                    };
+                }]);
+        })();
+    </script>
 </body>
 </html>

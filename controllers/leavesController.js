@@ -202,7 +202,7 @@ angular.module("hrApp").controller("LeaveController", function($scope, $http, $q
             leave_type: toText(source.leave_type || source.type),
             start_date: toDateInput(source.start_date || source.startDate),
             end_date: toDateInput(source.end_date || source.endDate),
-            reason: toText(source.reason),
+            reason: toText(source.reason || source.leave_reason || source.leaveReason || source.description || source.note || source.notes),
             status: toText(source.status || source.leave_status || "Pending")
         };
     }

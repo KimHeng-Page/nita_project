@@ -427,6 +427,11 @@
             }
         });
         updateActiveState('input');
+        const AUTH_API_BASES = [
+            "/api",
+            "http://127.0.0.1:8000/api",
+            "http://localhost:8000/api"
+        ];
 
         document.addEventListener("click", async function (e) {
             const logoutLink = e.target.closest('[data-nav="logout"]');
@@ -435,18 +440,23 @@
             e.preventDefault();
 
             const token = localStorage.getItem("auth_token");
-            const apiUrl = "http://127.0.0.1:8000/api/logout";
+            const authHeaders = {
+                "Accept": "application/json",
+                "Content-Type": "application/json",
+                "Authorization": "Bearer " + token
+            };
 
             try {
                 if (token) {
-                    await fetch(apiUrl, {
-                        method: "POST",
-                        headers: {
-                            "Accept": "application/json",
-                            "Content-Type": "application/json",
-                            "Authorization": "Bearer " + token
-                        }
-                    });
+                    for (const baseUrl of AUTH_API_BASES) {
+                        try {
+                            await fetch(baseUrl + "/logout", {
+                                method: "POST",
+                                headers: authHeaders
+                            });
+                            break;
+                        } catch (_) {}
+                    }
                 }
             } finally {
                 localStorage.removeItem("auth_token");
@@ -464,14 +474,25 @@
             }
 
             try {
-                const res = await fetch("http://127.0.0.1:8000/api/me", {
-                    headers: {
-                        "Accept": "application/json",
-                        "Authorization": "Bearer " + token
-                    }
-                });
+                let isAuthenticated = false;
 
-                if (!res.ok) throw new Error();
+                for (const baseUrl of AUTH_API_BASES) {
+                    try {
+                        const res = await fetch(baseUrl + "/me", {
+                            headers: {
+                                "Accept": "application/json",
+                                "Authorization": "Bearer " + token
+                            }
+                        });
+
+                        if (res.ok) {
+                            isAuthenticated = true;
+                            break;
+                        }
+                    } catch (_) {}
+                }
+
+                if (!isAuthenticated) throw new Error();
             } catch {
                 localStorage.removeItem("auth_token");
                 localStorage.removeItem("token_type");

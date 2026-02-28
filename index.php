@@ -319,7 +319,11 @@
 
             angular.module("loginApp", [])
                 .controller("LoginCtrl", ["$http", "$timeout", "$window", function ($http, $timeout, $window) {
-                    var LOGIN_API = "http://127.0.0.1:8000/api/login";
+                    var LOGIN_APIS = [
+                        "/api/login",
+                        "http://127.0.0.1:8000/api/login",
+                        "http://localhost:8000/api/login"
+                    ];
 
                     var vm = this;
                     vm.username = "";
@@ -338,18 +342,33 @@
                         vm.isSubmitting = true;
                         vm.message = "កំពុងចូលប្រព័ន្ធ...";
 
-                        $http({
-                            method: "POST",
-                            url: LOGIN_API,
-                            data: {
-                                username: String(vm.username || "").trim(),
-                                password: String(vm.password || "")
-                            },
-                            headers: {
-                                "Accept": "application/json",
-                                "Content-Type": "application/json"
-                            }
-                        })
+                        var payload = {
+                            username: String(vm.username || "").trim(),
+                            password: String(vm.password || "")
+                        };
+                        var headers = {
+                            "Accept": "application/json",
+                            "Content-Type": "application/json"
+                        };
+
+                        function tryLogin(index) {
+                            return $http({
+                                method: "POST",
+                                url: LOGIN_APIS[index],
+                                data: payload,
+                                headers: headers
+                            }).catch(function (error) {
+                                var isLastAttempt = index >= LOGIN_APIS.length - 1;
+                                var isAuthError = error && (error.status === 401 || error.status === 422);
+
+                                if (isAuthError || isLastAttempt) {
+                                    throw error;
+                                }
+                                return tryLogin(index + 1);
+                            });
+                        }
+
+                        tryLogin(0)
                             .then(function (response) {
                                 var data = response.data || {};
 

@@ -123,7 +123,7 @@ app.controller('DepartmentController', function($scope, $http, $filter) {
     };
 
     $scope.loadDepartments = function() {
-        $http.get('http://localhost:8000/api/departments')
+        $http.get('/api/departments')
             .then(function(response) {
                 $scope.departments = response.data;
                 refreshFilteredDepartments();
@@ -134,7 +134,7 @@ app.controller('DepartmentController', function($scope, $http, $filter) {
         var payload = buildDepartmentPayload($scope.department);
 
         if ($scope.editMode) {
-            $http.put('http://localhost:8000/api/departments/' + $scope.department.id, payload)
+            $http.put('/api/departments/' + $scope.department.id, payload)
                 .then(function() {
                     $scope.loadDepartments();
                     $scope.department = {};
@@ -142,7 +142,7 @@ app.controller('DepartmentController', function($scope, $http, $filter) {
                     $scope.showEditModal = false;
                 });
         } else {
-            $http.post('http://localhost:8000/api/departments', payload)
+            $http.post('/api/departments', payload)
                 .then(function() {
                     $scope.loadDepartments();
                     $scope.department = {};
@@ -179,7 +179,7 @@ app.controller('DepartmentController', function($scope, $http, $filter) {
 
     $scope.deleteDepartment = function(id) {
         if (confirm("តើអ្នកប្រាកដថាចង់លុបទិន្នន័យផ្នែកការងារនេះមែនទេ?")) {
-            $http.delete('http://localhost:8000/api/departments/' + id)
+            $http.delete('/api/departments/' + id)
                 .then(function() {
                     $scope.loadDepartments();
                 });
@@ -195,7 +195,7 @@ app.controller('DepartmentController', function($scope, $http, $filter) {
         payload.status = $scope.isDepartmentActive(dept) ? "inactive" : "active";
         dept._statusUpdating = true;
 
-        $http.put('http://localhost:8000/api/departments/' + dept.id, payload)
+        $http.put('/api/departments/' + dept.id, payload)
             .then(function() {
                 dept.status = payload.status;
             })

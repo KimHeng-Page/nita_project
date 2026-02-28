@@ -1,6 +1,6 @@
 app.factory("PayrollService", function($http){
 
-    var api = "http://127.0.0.1:8000/api/payrolls";
+    var api = "/api/payrolls";
 
     return {
 

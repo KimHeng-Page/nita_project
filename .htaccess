@@ -1,0 +1,9 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule \.map$ - [F,L,NC]
+</IfModule>
+
+<IfModule mod_headers.c>
+    Header always unset SourceMap
+    Header always unset X-SourceMap
+</IfModule>

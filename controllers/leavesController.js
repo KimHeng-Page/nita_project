@@ -1,5 +1,5 @@
 angular.module("hrApp").controller("LeaveController", function($scope, $http, $q, $window) {
-    var API_BASES = ["http://127.0.0.1:8000/api", "http://localhost:8000/api"];
+    var API_BASES = ["/api"];
 
     $scope.leaves = [];
     $scope.employees = [];

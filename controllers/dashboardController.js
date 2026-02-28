@@ -427,10 +427,7 @@
     }
 
     function loadLeavesSafe(){
-        return $http.get("http://127.0.0.1:8000/api/leaves")
-            .catch(function(){
-                return $http.get("http://localhost:8000/api/leaves");
-            })
+        return $http.get("/api/leaves")
             .catch(function(){
                 return { data: [] };
             });

@@ -1,6 +1,6 @@
 app.service("EmployeeService", function($http){
 
-    var API = "http://127.0.0.1:8000/api/employees";
+    var API = "/api/employees";
     var FORM_HEADERS = {
         transformRequest: angular.identity,
         headers: { "Content-Type": undefined }

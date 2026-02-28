@@ -1,5 +1,5 @@
 angular.module("hrApp").controller("AttendanceController", function($scope, $http, $filter, $window, $q) {
-    var API_BASE = "http://127.0.0.1:8000/api";
+    var API_BASE = "/api";
 
     $scope.attendances = [];
     $scope.employees = [];

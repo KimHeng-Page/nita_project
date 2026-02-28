@@ -151,7 +151,7 @@ app.controller("EmployeeController", function($scope, $location, $filter, $windo
     }
 
     function loadDepartmentOptions(){
-        return $http.get("http://127.0.0.1:8000/api/departments")
+        return $http.get("/api/departments")
             .then(function(response){
                 $scope.departmentOptions = extractDepartmentOptions(response.data);
                 $scope.departmentNameOptions = buildDepartmentNameOptions($scope.departmentOptions);
@@ -286,7 +286,7 @@ app.controller("EmployeeController", function($scope, $location, $filter, $windo
     };
 
     $scope.getImageUrl = function(image){
-        var baseUrl = "http://127.0.0.1:8000";
+        var baseUrl = window.location.origin || "";
 
         if (!image) {
             return "";

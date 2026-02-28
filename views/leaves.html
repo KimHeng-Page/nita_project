@@ -1,15 +1,15 @@
 ﻿<section class="w-full lg:col-span-3 bg-white rounded-[5px] shadow-sm border border-gray-200">
     <div class="px-5 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-            <h2 class="text-lg font-semibold text-gray-800">áž•áŸ’áž‘áž¶áŸ†áž„áž‚áŸ’ážšáž”áŸ‹áž‚áŸ’ážšáž„áž…áŸ’áž”áž¶áž”áŸ‹ážˆáž”áŸ‹ážŸáž˜áŸ’ážšáž¶áž€áž”áž»áž‚áŸ’áž‚áž›áž·áž€</h2>
-            <p class="text-xs text-gray-500 mt-0.5">áž‚áŸ’ážšáž”áŸ‹áž‚áŸ’ážšáž„ážŸáŸ†ážŽáž¾áž…áŸ’áž”áž¶áž”áŸ‹ážˆáž”áŸ‹ážŸáž˜áŸ’ážšáž¶áž€ áž“áž·áž„ážŸáŸ’ážáž¶áž“áž—áž¶áž–áž¢áž“áž»áž˜áŸáž</p>
+            <h2 class="text-lg font-semibold text-gray-800">ផ្ទាំងគ្រប់គ្រងច្បាប់ឈប់សម្រាកបុគ្គលិក</h2>
+            <p class="text-xs text-gray-500 mt-0.5">គ្រប់គ្រងសំណើច្បាប់ឈប់សម្រាក និងស្ថានភាពអនុម័ត</p>
         </div>
         <button
             type="button"
             ng-click="openCreateModal()"
             class="inline-flex items-center rounded-[3px] bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
         >
-           + áž”áž„áŸ’áž€áž¾ážážŸáŸ†ážŽáž¾ážáŸ’áž˜áž¸
+           + បង្កើតសំណើថ្មី
         </button>
     </div>
 
@@ -56,14 +56,14 @@
                                 ng-click="openEditModal(lv)"
                                 class="inline-flex items-center rounded-[3px] bg-amber-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-600 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-1"
                             >
-                                áž€áŸ‚áž”áŸ’ážšáŸ‚
+                                កែប្រែ
                             </button>
                             <button
                                 type="button"
                                 ng-click="deleteLeave(lv)"
                                 class="inline-flex items-center rounded-[3px] bg-red-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
                             >
-                                áž›áž»áž”
+                                លុប
                             </button>
                             <button
                                 type="button"
@@ -71,7 +71,7 @@
                                 ng-click="approve(lv.id)"
                                 class="inline-flex items-center rounded-[3px] bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-1"
                             >
-                                áž¢áž“áž»áž˜áŸáž
+                                អនុម័ត
                             </button>
                             <button
                                 type="button"
@@ -79,14 +79,14 @@
                                 ng-click="reject(lv.id)"
                                 class="inline-flex items-center rounded-[3px] bg-orange-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-1"
                             >
-                                áž”ážŠáž·ážŸáŸáž’
+                                បដិសេធ
                             </button>
                         </div>
                     </td>
                 </tr>
                 <tr ng-if="!leaves || leaves.length === 0">
-                    <td colspan="8" class="px-5 py-6 text-center text-sm text-gray-500 font-bold">
-                        áž˜áž·áž“áž˜áž¶áž“áž‘áž·áž“áŸ’áž“áž“áŸáž™
+                    <td colspan="9" class="px-5 py-6 text-center text-sm text-gray-500 font-bold">
+                        មិនមានទិន្នន័យ
                     </td>
                 </tr>
             </tbody>
@@ -94,14 +94,14 @@
     </div>
     <div class="px-5 py-4 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3" ng-if="pagination.totalItems > 0">
         <div class="flex items-center gap-2 text-sm text-gray-600">
-            <span>áž‡áž½ážšážŠáŸáž€:</span>
+            <span>ជួរដេក:</span>
             <select
                 ng-model="pagination.pageSize"
                 ng-change="changePageSize()"
                 ng-options="size for size in pagination.pageSizeOptions"
                 class="rounded-[3px] border border-gray-300 bg-white px-2 py-1 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
             ></select>
-            <span>áž‘áŸ†áž–áŸážš {{pagination.currentPage}} / {{pagination.totalPages}}</span>
+            <span>ទំព័រ {{pagination.currentPage}} / {{pagination.totalPages}}</span>
         </div>
         <div class="inline-flex items-center gap-1">
             <button
@@ -110,7 +110,7 @@
                 ng-disabled="pagination.currentPage === 1"
                 class="rounded-[3px] border border-gray-300 px-2.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-                ážáž™áž€áŸ’ážšáŸ„áž™
+                ថយក្រោយ
             </button>
             <button
                 type="button"
@@ -127,7 +127,7 @@
                 ng-disabled="pagination.currentPage === pagination.totalPages"
                 class="rounded-[3px] border border-gray-300 px-2.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-                áž”áž“áŸ’áž‘áž¶áž”áŸ‹
+                បន្ទាប់
             </button>
         </div>
     </div>
@@ -143,35 +143,36 @@
         class="w-full max-w-xl bg-white rounded-[5px] shadow-xl border border-gray-200"
     >
         <div class="px-4 sm:px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h3 class="text-lg font-semibold text-gray-800">áž”áž„áŸ’áž€áž¾ážážŸáŸ†ážŽáž¾áž…áŸ’áž”áž¶áž”áŸ‹ážˆáž”áŸ‹ážŸáž˜áŸ’ážšáž¶áž€</h3>
+            <h3 class="text-lg font-semibold text-gray-800">បង្កើតសំណើច្បាប់ឈប់សម្រាក</h3>
             <button type="button" ng-click="closeCreateModal()" class="text-gray-500 hover:text-gray-700 text-xl leading-none">&times;</button>
         </div>
 
         <form ng-submit="submitCreateLeave()" novalidate class="p-4 sm:p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">áž”áž»áž‚áŸ’áž‚áž›áž·áž€</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">បុគ្គលិក</label>
                 <select
                     ng-model="createLeaveModel.employee_id"
                     ng-options="emp.id as emp.fullname for emp in employees"
                     required
                     class="w-full rounded-[3px] border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
-                    <option value="">áž‡áŸ’ážšáž¾ážŸážšáž¾ážŸáž”áž»áž‚áŸ’áž‚áž›áž·áž€</option>
+                    <option value="">ជ្រើសរើសបុគ្គលិក</option>
                 </select>
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">áž”áŸ’ážšáž—áŸáž‘áž…áŸ’áž”áž¶áž”áŸ‹ážˆáž”áŸ‹ážŸáž˜áŸ’ážšáž¶áž€</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">ប្រភេទច្បាប់ឈប់សម្រាក</label>
                 <input
                     type="text"
                     ng-model="createLeaveModel.leave_type"
+                    placeholder="បញ្ចូលប្រភេទច្បាប់"
                     required
                     class="w-full rounded-[3px] border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">ážáŸ’áž„áŸƒáž…áž¶áž”áŸ‹áž•áŸ’ážáž¾áž˜</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">ថ្ងៃចាប់ផ្តើម</label>
                 <input
                     type="date"
                     ng-model="createLeaveModel.start_date"
@@ -181,7 +182,7 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">ážáŸ’áž„áŸƒáž”áž‰áŸ’áž…áž”áŸ‹</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">ថ្ងៃបញ្ចប់</label>
                 <input
                     type="date"
                     ng-model="createLeaveModel.end_date"
@@ -191,7 +192,7 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">ážŸáŸ’ážáž¶áž“áž—áž¶áž–</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">ស្ថានភាព</label>
                 <select
                     ng-model="createLeaveModel.status"
                     required
@@ -204,10 +205,11 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">áž˜áž¼áž›áž áŸážáž»</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">មូលហេតុ</label>
                 <input
                     type="text"
                     ng-model="createLeaveModel.reason"
+                    placeholder="បញ្ចូលមូលហេតុ"
                     class="w-full rounded-[3px] border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
             </div>
@@ -218,13 +220,13 @@
                     ng-click="closeCreateModal()"
                     class="rounded-[3px] border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100"
                 >
-                    áž”áŸ„áŸ‡áž”áž„áŸ‹
+                    បោះបង់
                 </button>
                 <button
                     type="submit"
                     class="rounded-[3px] bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                    ážšáž€áŸ’ážŸáž¶áž‘áž»áž€
+                    រក្សាទុក
                 </button>
             </div>
         </form>
@@ -241,35 +243,36 @@
         class="w-full max-w-xl bg-white rounded-[5px] shadow-xl border border-gray-200"
     >
         <div class="px-4 sm:px-5 py-4 border-b border-gray-100 flex items-center justify-between">
-            <h3 class="text-lg font-semibold text-gray-800">áž€áŸ‚áž”áŸ’ážšáŸ‚ážŸáŸ†ážŽáž¾áž…áŸ’áž”áž¶áž”áŸ‹ážˆáž”áŸ‹ážŸáž˜áŸ’ážšáž¶áž€</h3>
+            <h3 class="text-lg font-semibold text-gray-800">កែប្រែសំណើច្បាប់ឈប់សម្រាក</h3>
             <button type="button" ng-click="closeEditModal()" class="text-gray-500 hover:text-gray-700 text-xl leading-none">&times;</button>
         </div>
 
         <form ng-submit="submitEditLeave()" novalidate class="p-4 sm:p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">áž”áž»áž‚áŸ’áž‚áž›áž·áž€</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">បុគ្គលិក</label>
                 <select
                     ng-model="editLeaveModel.employee_id"
                     ng-options="emp.id as emp.fullname for emp in employees"
                     required
                     class="w-full rounded-[3px] border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
-                    <option value="">áž‡áŸ’ážšáž¾ážŸážšáž¾ážŸáž”áž»áž‚áŸ’áž‚áž›áž·áž€</option>
+                    <option value="">ជ្រើសរើសបុគ្គលិក</option>
                 </select>
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">áž”áŸ’ážšáž—áŸáž‘áž…áŸ’áž”áž¶áž”áŸ‹ážˆáž”áŸ‹ážŸáž˜áŸ’ážšáž¶áž€</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">ប្រភេទច្បាប់ឈប់សម្រាក</label>
                 <input
                     type="text"
                     ng-model="editLeaveModel.leave_type"
+                    placeholder="បញ្ចូលប្រភេទច្បាប់"
                     required
                     class="w-full rounded-[3px] border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">ážáŸ’áž„áŸƒáž…áž¶áž”áŸ‹áž•áŸ’ážáž¾áž˜</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">ថ្ងៃចាប់ផ្តើម</label>
                 <input
                     type="date"
                     ng-model="editLeaveModel.start_date"
@@ -279,7 +282,7 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">ážáŸ’áž„áŸƒáž”áž‰áŸ’áž…áž”áŸ‹</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">ថ្ងៃបញ្ចប់</label>
                 <input
                     type="date"
                     ng-model="editLeaveModel.end_date"
@@ -289,7 +292,7 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">ážŸáŸ’ážáž¶áž“áž—áž¶áž–</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">ស្ថានភាព</label>
                 <select
                     ng-model="editLeaveModel.status"
                     required
@@ -302,10 +305,11 @@
             </div>
 
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">áž˜áž¼áž›áž áŸážáž»</label>
+                <label class="block text-sm font-medium text-gray-700 mb-1">មូលហេតុ</label>
                 <input
                     type="text"
                     ng-model="editLeaveModel.reason"
+                    placeholder="បញ្ចូលមូលហេតុ"
                     class="w-full rounded-[3px] border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
             </div>
@@ -313,23 +317,23 @@
             <div class="md:col-span-2 flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
                 <button
                     type="button"
-                    ng-click="deleteLeave({id: editingLeaveId})"
+                    ng-click="deleteLeave(editLeaveModel)"
                     class="rounded-[3px] bg-red-500 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
                 >
-                    áž›áž»áž”
+                    លុប
                 </button>
                 <button
                     type="button"
                     ng-click="closeEditModal()"
                     class="rounded-[3px] border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100"
                 >
-                    áž”áž·áž‘
+                    បិទ
                 </button>
                 <button
                     type="submit"
                     class="rounded-[3px] bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                    ážšáž€áŸ’ážŸáž¶áž‘áž»áž€áž€áž¶ážšáž€áŸ‚áž”áŸ’ážšáŸ‚
+                    រក្សាទុកការកែប្រែ
                 </button>
             </div>
         </form>

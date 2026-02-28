@@ -51,7 +51,7 @@ app.config(function($routeProvider, $locationProvider, $httpProvider){
         redirectTo: "/attendances"
     })
     .when("/leaves", {
-        templateUrl: "views/leaves.html?v=20260225-16",
+        templateUrl: "views/leaves.html?v=20260228-1",
         controller: "LeaveController",
         title: "គ្រប់គ្រងច្បាប់ឈប់សម្រាក"
     })

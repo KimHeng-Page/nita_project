@@ -55,12 +55,14 @@
                     <td class="px-5 py-3 text-gray-700">{{emp.id}}</td>
                      <td class="px-5 py-3 font-medium text-gray-800">
                         <img
-                            ng-if="getImageUrl(emp.image)"
-                            ng-src="{{getImageUrl(emp.image)}}"
-                            alt="រូបភាំ"
+                            ng-if="getImageUrl(getEmployeeImage(emp))"
+                            ng-src="{{getImageUrl(getEmployeeImage(emp))}}"
+                            ng-attr-data-fallback-src="{{getImageFallbackUrl(getEmployeeImage(emp))}}"
+                            onerror="if(this.dataset.fallbackApplied==='1'){this.style.display='none';return;}var fb=this.getAttribute('data-fallback-src');if(fb){this.dataset.fallbackApplied='1';this.src=fb;}else{this.style.display='none';}"
+                            alt="រូបភាព"
                             class="h-10 w-10 rounded-[3px] object-cover border border-gray-200"
                         >
-                        <span ng-if="!getImageUrl(emp.image)" class="text-xs text-gray-400">គ្មាន</span>
+                        <span ng-if="!getImageUrl(getEmployeeImage(emp))" class="text-xs text-gray-400">គ្មាន</span>
                     </td>
                     <td class="px-5 py-3 font-medium text-gray-800">{{emp.fullname}}</td>
                     <td class="px-5 py-3 font-medium text-gray-800">{{emp.age}}</td>
@@ -231,8 +233,10 @@
                     class="w-full rounded-[3px] border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                 <img
-                    ng-if="isEditMode && getImageUrl(newEmployee.image)"
-                    ng-src="{{getImageUrl(newEmployee.image)}}"
+                    ng-if="isEditMode && getImageUrl(getEmployeeImage(newEmployee))"
+                    ng-src="{{getImageUrl(getEmployeeImage(newEmployee))}}"
+                    ng-attr-data-fallback-src="{{getImageFallbackUrl(getEmployeeImage(newEmployee))}}"
+                    onerror="if(this.dataset.fallbackApplied==='1'){this.style.display='none';return;}var fb=this.getAttribute('data-fallback-src');if(fb){this.dataset.fallbackApplied='1';this.src=fb;}else{this.style.display='none';}"
                     alt="Current employee image"
                     class="mt-2 h-12 w-12 rounded-[3px] object-cover border border-gray-200"
                 >
@@ -346,12 +350,14 @@
         <div class="p-5 space-y-4">
             <div class="rounded-[5px] border border-gray-100 bg-gray-50 px-4 py-5">
                 <img
-                    ng-if="getImageUrl(selectedEmployee.image)"
-                    ng-src="{{getImageUrl(selectedEmployee.image)}}"
-                    alt="Employee image"
+                    ng-if="getImageUrl(getEmployeeImage(selectedEmployee))"
+                    ng-src="{{getImageUrl(getEmployeeImage(selectedEmployee))}}"
+                    ng-attr-data-fallback-src="{{getImageFallbackUrl(getEmployeeImage(selectedEmployee))}}"
+                    onerror="if(this.dataset.fallbackApplied==='1'){this.style.display='none';return;}var fb=this.getAttribute('data-fallback-src');if(fb){this.dataset.fallbackApplied='1';this.src=fb;}else{this.style.display='none';}"
+                    alt="រូបភាព"
                     class="h-24 w-24 rounded-[5px] object-cover border border-gray-200 mx-auto"
                 >
-                <div ng-if="!getImageUrl(selectedEmployee.image)" class="h-24 w-24 rounded-[5px] border border-gray-200 bg-white flex items-center justify-center text-xs text-gray-400 mx-auto">
+                <div ng-if="!getImageUrl(getEmployeeImage(selectedEmployee))" class="h-24 w-24 rounded-[5px] border border-gray-200 bg-white flex items-center justify-center text-xs text-gray-400 mx-auto">
                     គ្មានរូបភាព
                 </div>
                 <div class="min-w-0 mt-3 text-center">

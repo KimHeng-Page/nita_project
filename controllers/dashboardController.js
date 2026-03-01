@@ -116,18 +116,22 @@
 
     function getCurrentUserDisplayName(){
         try {
-            var raw = $window.localStorage.getItem("auth_user");
-            if (!raw) {
-                return "អ្នកប្រើប្រាស់";
-            }
-
-            var user = JSON.parse(raw);
-            var name = user && (user.fullname || user.full_name || user.name || user.username || user.email);
-            name = (name === undefined || name === null) ? "" : String(name).trim();
+            var name = ($window.sessionStorage.getItem("auth_user_display_name") || "").trim();
             return name || "អ្នកប្រើប្រាស់";
         } catch (e) {
             return "អ្នកប្រើប្រាស់";
         }
+    }
+
+    function cacheCurrentUserDisplayName(source){
+        var name = source && (source.fullname || source.full_name || source.name || source.username || source.email);
+        name = (name === undefined || name === null) ? "" : String(name).trim();
+        if (!name) {
+            return;
+        }
+        try {
+            $window.sessionStorage.setItem("auth_user_display_name", name);
+        } catch (e) {}
     }
 
     function buildWelcomeText(){
@@ -257,7 +261,7 @@
     }
 
     function showLoginWelcomeOnce(){
-        var shouldShow = $window.localStorage.getItem(DASHBOARD_WELCOME_KEY) === "1";
+        var shouldShow = $window.sessionStorage.getItem(DASHBOARD_WELCOME_KEY) === "1";
         if (!shouldShow) {
             return;
         }
@@ -267,9 +271,19 @@
         $scope.showWelcomeAlert = true;
         scheduleWelcomeAlertAutoClose();
 
-        $window.localStorage.removeItem(DASHBOARD_WELCOME_KEY);
+        $window.sessionStorage.removeItem(DASHBOARD_WELCOME_KEY);
         queueWelcomeSpeechOnFirstGesture(welcomeText);
         speakKhmerNow(welcomeText);
+    }
+
+    function loadCurrentUser(){
+        return $http.get("/api/me")
+            .then(function(response){
+                var payload = response && response.data ? response.data : {};
+                var user = payload.user || payload.data || {};
+                cacheCurrentUserDisplayName(user);
+            })
+            .catch(function(){});
     }
 
     $scope.dismissWelcomeAlert = function(){
@@ -429,6 +443,19 @@
     function loadLeavesSafe(){
         return $http.get("/api/leaves")
             .catch(function(){
+                return $http.get("json/leaves.json");
+            })
+            .catch(function(){
+                return { data: [] };
+            });
+    }
+
+    function loadEmployeesSafe(){
+        return EmployeeService.getAll()
+            .catch(function(){
+                return $http.get("json/employees.json");
+            })
+            .catch(function(){
                 return { data: [] };
             });
     }
@@ -544,7 +571,7 @@
         }, 0);
     }
 
-    $q.all([EmployeeService.getAll(), loadLeavesSafe()])
+    $q.all([loadEmployeesSafe(), loadLeavesSafe()])
         .then(function(results){
             var employeesPayload = results[0].data;
             var employees = extractEmployees(employeesPayload);
@@ -557,14 +584,15 @@
             updateDashboard(employees, totalEmployees, totalLeaves);
         })
         .catch(function(){
-            $scope.dashboardError = "Failed to load dashboard data.";
             destroyCharts();
         })
         .finally(function(){
             $scope.isLoadingDashboard = false;
         });
 
-    showLoginWelcomeOnce();
+    loadCurrentUser().finally(function(){
+        showLoginWelcomeOnce();
+    });
     startSlideTimer();
 
     $scope.$on("$destroy", function(){

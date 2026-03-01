@@ -285,35 +285,257 @@ app.controller("EmployeeController", function($scope, $location, $filter, $windo
         return $scope.filteredEmployees.slice(start, start + $scope.pageSize);
     };
 
-    $scope.getImageUrl = function(image){
-        var baseUrl = window.location.origin || "";
+    function buildImageCandidates(image){
+        var origin = window.location.origin || "";
+        var pathname = window.location.pathname || "/";
+        var appBasePath = pathname.replace(/[^/]*$/, "");
+        var candidates = [];
+
+        function toAppUrl(path) {
+            var clean = String(path || "").replace(/^\/+/, "");
+            return origin + appBasePath + clean;
+        }
+
+        function toRootUrl(path) {
+            var clean = String(path || "").replace(/^\/+/, "");
+            return origin + "/" + clean;
+        }
+
+        function addCandidate(url){
+            if (!url) {
+                return;
+            }
+            if (typeof url !== "string") {
+                url = String(url);
+            }
+            url = url.trim();
+            if (!url || url.indexOf("unsafe:") === 0) {
+                return;
+            }
+            if (candidates.indexOf(url) === -1) {
+                candidates.push(url);
+            }
+        }
 
         if (!image) {
-            return "";
+            return candidates;
         }
 
         if (typeof image === "object" && image.url) {
             image = image.url;
         }
         image = String(image).replace(/\\/g, "/");
+        image = image.replace(/^public\//, "");
+        image = image.trim();
+
+        // Normalize common backend disk-style paths to public web paths.
+        image = image.replace(/^.*\/storage\/app\/public\//i, "storage/");
+        image = image.replace(/^.*\/public\/storage\//i, "storage/");
+        image = image.replace(/^.*\/public\/uploads\//i, "uploads/");
+        image = image.replace(/^.*\/public\/images\//i, "images/");
 
         if (/^(https?:)?\/\//.test(image) || image.indexOf("data:") === 0 || image.indexOf("blob:") === 0) {
-            return image;
+            if (image.indexOf("data:") === 0 || image.indexOf("blob:") === 0) {
+                addCandidate(image);
+                return candidates;
+            }
+
+            try {
+                var parsed = new URL(image, origin || window.location.href);
+                var host = (parsed.hostname || "").toLowerCase();
+                var isLocalBackendHost = host === "127.0.0.1" || host === "localhost";
+                var backendPath = String(parsed.pathname || "");
+                backendPath = backendPath.replace(/\\/g, "/");
+
+                if (isLocalBackendHost) {
+                    backendPath = backendPath.replace(/^\/+api\/storage\//, "/storage/");
+                    backendPath = backendPath.replace(/^\/+api\/uploads\//, "/uploads/");
+                    backendPath = backendPath.replace(/^\/+api\/images\//, "/images/");
+                    addCandidate(toRootUrl(backendPath));
+                    addCandidate(toAppUrl(backendPath));
+                }
+            } catch (e) {
+                // Keep original URL below.
+            }
+
+            addCandidate(image);
+            return candidates;
         }
 
-        if (image.indexOf("/storage/") === 0 || image.indexOf("/uploads/") === 0) {
-            return baseUrl + image;
+        if (image.indexOf("./") === 0) {
+            image = image.substring(2);
         }
 
-        if (image.indexOf("storage/") === 0 || image.indexOf("uploads/") === 0) {
-            return baseUrl + "/" + image;
+        if (image.indexOf("/api/storage/") === 0) {
+            var fromApiStorage = image.replace(/^\/api\//, "");
+            addCandidate(toRootUrl(fromApiStorage));
+            addCandidate(toAppUrl(fromApiStorage));
+            return candidates;
+        }
+
+        if (image.indexOf("api/storage/") === 0) {
+            var relApiStorage = image.replace(/^api\//, "");
+            addCandidate(toRootUrl(relApiStorage));
+            addCandidate(toAppUrl(relApiStorage));
+            return candidates;
+        }
+
+        if (image.indexOf("/images/") === 0) {
+            addCandidate(toAppUrl(image));
+            addCandidate(toRootUrl(image));
+            return candidates;
+        }
+
+        if (
+            image.indexOf("/storage/") === 0 ||
+            image.indexOf("/uploads/") === 0
+        ) {
+            addCandidate(toRootUrl(image));
+            addCandidate(toAppUrl(image));
+            return candidates;
+        }
+
+        if (
+            image.indexOf("storage/") === 0 ||
+            image.indexOf("uploads/") === 0 ||
+            image.indexOf("images/") === 0
+        ) {
+            if (image.indexOf("images/") === 0) {
+                addCandidate(toAppUrl(image));
+                addCandidate(toRootUrl(image));
+                return candidates;
+            }
+            addCandidate(toRootUrl(image));
+            addCandidate(toAppUrl(image));
+            return candidates;
         }
 
         if (image.indexOf("/") === 0) {
-            return baseUrl + image;
+            addCandidate(toAppUrl(image));
+            addCandidate(toRootUrl(image));
+            return candidates;
         }
 
-        return baseUrl + "/storage/" + image;
+        addCandidate(toRootUrl("storage/" + image));
+        addCandidate(toAppUrl("storage/" + image));
+        addCandidate(toRootUrl("uploads/" + image));
+        addCandidate(toAppUrl("uploads/" + image));
+        addCandidate(toRootUrl("images/" + image));
+        addCandidate(toAppUrl("images/" + image));
+        return candidates;
+    }
+
+    function encodeUrlPath(url){
+        if (!url || typeof url !== "string") {
+            return "";
+        }
+        if (url.indexOf("data:") === 0 || url.indexOf("blob:") === 0) {
+            return url;
+        }
+
+        try {
+            var parsed = new URL(url, window.location.href);
+            var pathname = parsed.pathname || "";
+            var encodedPath = pathname
+                .split("/")
+                .map(function(part){
+                    if (!part) {
+                        return "";
+                    }
+                    try {
+                        return encodeURIComponent(decodeURIComponent(part));
+                    } catch (e) {
+                        return encodeURIComponent(part);
+                    }
+                })
+                .join("/");
+            parsed.pathname = encodedPath;
+            return parsed.toString();
+        } catch (e) {
+            return url.replace(/ /g, "%20");
+        }
+    }
+
+    $scope.getImageUrl = function(image){
+        var candidates = buildImageCandidates(image);
+        return candidates.length ? encodeUrlPath(candidates[0]) : "";
+    };
+
+    $scope.getImageFallbackUrl = function(image){
+        var candidates = buildImageCandidates(image);
+        return candidates.length > 1 ? encodeUrlPath(candidates[1]) : "";
+    };
+
+    $scope.getEmployeeImage = function(employee){
+        var source = employee || {};
+        var imageObj = source.image && typeof source.image === "object" ? source.image : null;
+        var direct = (
+            (imageObj && (imageObj.url || imageObj.path || imageObj.src || imageObj.location)) ||
+            (typeof source.image === "string" ? source.image : "") ||
+            source.image_url ||
+            source.imagePath ||
+            source.image_path ||
+            source.profile_image ||
+            source.profileImage ||
+            source.photo ||
+            source.avatar ||
+            source.picture ||
+            source.image_name ||
+            source.imageName ||
+            source.thumbnail ||
+            source.thumb ||
+            source.img ||
+            ""
+        );
+
+        if (direct) {
+            return direct;
+        }
+
+        // Fallback: detect common image-like keys from API payloads.
+        var keys = Object.keys(source || {});
+        for (var i = 0; i < keys.length; i++) {
+            var key = keys[i];
+            var lowerKey = String(key).toLowerCase();
+            var value = source[key];
+
+            if (!value) {
+                continue;
+            }
+
+            var looksLikeImageKey =
+                lowerKey.indexOf("image") !== -1 ||
+                lowerKey.indexOf("photo") !== -1 ||
+                lowerKey.indexOf("avatar") !== -1 ||
+                lowerKey.indexOf("picture") !== -1 ||
+                lowerKey.indexOf("thumb") !== -1;
+
+            if (!looksLikeImageKey) {
+                continue;
+            }
+
+            if (typeof value === "string") {
+                return value;
+            }
+
+            if (typeof value === "object") {
+                var nested =
+                    value.url ||
+                    value.path ||
+                    value.src ||
+                    value.location ||
+                    value.full ||
+                    value.original ||
+                    value.thumbnail ||
+                    value.thumb ||
+                    "";
+                if (nested) {
+                    return nested;
+                }
+            }
+        }
+
+        return "";
     };
 
     $scope.goToPage = function(page){

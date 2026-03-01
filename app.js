@@ -6,18 +6,31 @@ app.config(function($routeProvider, $locationProvider, $httpProvider){
     }
 
     $httpProvider.defaults.headers.common.Accept = "application/json";
+    $httpProvider.defaults.withCredentials = true;
     $httpProvider.interceptors.push(function() {
+        var pathname = (window.location && window.location.pathname) ? window.location.pathname : "/";
+        var appBasePath = pathname.replace(/[^/]*$/, "");
+        var apiProxyBase = appBasePath + "api.php?path=";
+
         return {
             request: function(config) {
-                config.headers = config.headers || {};
-                try {
-                    var token = localStorage.getItem("auth_token");
-                    if (token && !config.headers.Authorization) {
-                        config.headers.Authorization = "Bearer " + token;
-                    }
-                } catch (e) {
-                    
+                if (!config || !config.url || typeof config.url !== "string") {
+                    return config;
                 }
+
+                // Route same-origin API calls through the PHP auth proxy.
+                if (config.url.indexOf("/api/") === 0) {
+                    var proxied = apiProxyBase + encodeURIComponent(config.url.substring(5));
+                    config.url = proxied.replace(/%2F/g, "/");
+                } else if (config.url.indexOf("api/") === 0) {
+                    var relProxied = apiProxyBase + encodeURIComponent(config.url.substring(4));
+                    config.url = relProxied.replace(/%2F/g, "/");
+                } else if (config.url === "/api") {
+                    config.url = apiProxyBase;
+                } else if (config.url === "api") {
+                    config.url = apiProxyBase;
+                }
+
                 return config;
             }
         };
@@ -28,22 +41,22 @@ app.config(function($routeProvider, $locationProvider, $httpProvider){
         redirectTo: "/dashboard"
     })
     .when("/dashboard", {
-        templateUrl: "views/dashboard.html?v=20260225-19",
+        templateUrl: "views/dashboard.html",
         controller: "DashboardController",
         title: "ផ្ទាំងគ្រប់គ្រង"
     })
     .when("/employees", {
-        templateUrl: "views/list.html?v=20260225-16",
+        templateUrl: "views/list.html",
         controller: "EmployeeController",
         title: "គ្រប់គ្រងបុគ្គលិក"
     })
     .when("/department", {
-        templateUrl: "views/department.html?v=20260225-16",
+        templateUrl: "views/department.html",
         controller: "DepartmentController",
         title: "គ្រប់គ្រងផ្នែក"
     })
     .when("/attendances", {
-        templateUrl: "views/attendance.html?v=20260225-17",
+        templateUrl: "views/attendance.html",
         controller: "AttendanceController",
         title: "គ្រប់គ្រងវត្តមាន"
     })
@@ -51,12 +64,12 @@ app.config(function($routeProvider, $locationProvider, $httpProvider){
         redirectTo: "/attendances"
     })
     .when("/leaves", {
-        templateUrl: "views/leaves.html?v=20260228-1",
+        templateUrl: "views/leaves.html",
         controller: "LeaveController",
         title: "គ្រប់គ្រងច្បាប់ឈប់សម្រាក"
     })
     .when("/payroll", {
-        templateUrl: "views/paryrolle.html?v=20260226-1",
+        templateUrl: "views/paryrolle.html",
         controller: "PayrollController",
         title: "បញ្ជីប្រាក់បៀវត្ស"
     })
@@ -73,7 +86,7 @@ app.config(function($routeProvider, $locationProvider, $httpProvider){
         redirectTo: "/department"
     })
     .when("/add", {
-        templateUrl: "views/add.html?v=20260221",
+        templateUrl: "views/add.html",
         controller: "EmployeeController",
         title: "បន្ថែមបុគ្គលិក"
     })

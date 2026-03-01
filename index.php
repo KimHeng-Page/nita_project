@@ -1,4 +1,25 @@
-﻿<!DOCTYPE html>
+﻿<?php
+$isHttps = (!empty($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] !== "off")
+    || (isset($_SERVER["SERVER_PORT"]) && (int) $_SERVER["SERVER_PORT"] === 443);
+session_set_cookie_params([
+    "lifetime" => 0,
+    "path" => "/",
+    "domain" => "",
+    "secure" => $isHttps,
+    "httponly" => true,
+    "samesite" => "Lax",
+]);
+session_start();
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
+
+if (!empty($_SESSION["auth_token"])) {
+    header("Location: page.php#/dashboard");
+    exit;
+}
+?>
+<!DOCTYPE html>
 <html lang="en" ng-app="loginApp">
 <head>
     <meta charset="UTF-8">
@@ -319,12 +340,6 @@
 
             angular.module("loginApp", [])
                 .controller("LoginCtrl", ["$http", "$timeout", "$window", function ($http, $timeout, $window) {
-                    var LOGIN_APIS = [
-                        "/api/login",
-                        "http://127.0.0.1:8000/api/login",
-                        "http://localhost:8000/api/login"
-                    ];
-
                     var vm = this;
                     vm.username = "";
                     vm.password = "";
@@ -346,43 +361,31 @@
                             username: String(vm.username || "").trim(),
                             password: String(vm.password || "")
                         };
-                        var headers = {
-                            "Accept": "application/json",
-                            "Content-Type": "application/json"
-                        };
 
-                        function tryLogin(index) {
-                            return $http({
-                                method: "POST",
-                                url: LOGIN_APIS[index],
-                                data: payload,
-                                headers: headers
-                            }).catch(function (error) {
-                                var isLastAttempt = index >= LOGIN_APIS.length - 1;
-                                var isAuthError = error && (error.status === 401 || error.status === 422);
-
-                                if (isAuthError || isLastAttempt) {
-                                    throw error;
-                                }
-                                return tryLogin(index + 1);
-                            });
-                        }
-
-                        tryLogin(0)
+                        $http({
+                            method: "POST",
+                            url: "api.php?path=login",
+                            data: payload,
+                            headers: {
+                                "Accept": "application/json",
+                                "Content-Type": "application/json"
+                            },
+                            withCredentials: true
+                        })
                             .then(function (response) {
                                 var data = response.data || {};
+                                var user = data.user || {};
+                                var userName = (user.fullname || user.full_name || user.name || user.username || user.email || "").toString().trim();
 
-                                if (!data.token) {
+                                if (!data.authenticated) {
                                     vm.message = "ចូលប្រព័ន្ធបរាជ័យ";
                                     return;
                                 }
 
-                                $window.localStorage.setItem("auth_token", data.token);
-                                $window.localStorage.setItem("token_type", data.token_type || "Bearer");
-                                if (data.user) {
-                                    $window.localStorage.setItem("auth_user", JSON.stringify(data.user));
+                                $window.sessionStorage.setItem("show_dashboard_welcome", "1");
+                                if (userName) {
+                                    $window.sessionStorage.setItem("auth_user_display_name", userName);
                                 }
-                                $window.localStorage.setItem("show_dashboard_welcome", "1");
 
                                 vm.message = "ចូលប្រព័ន្ធជោគជ័យ";
                                 $timeout(function () {
@@ -390,10 +393,13 @@
                                 }, 400);
                             })
                             .catch(function (error) {
+                                var backendMessage = error && error.data && error.data.message ? String(error.data.message) : "";
                                 if (error.status === 401) {
                                     vm.message = "ឈ្មោះអ្នកប្រើ ឬ លេខសម្ងាត់មិនត្រឹមត្រូវ";
                                 } else if (error.status === 422) {
                                     vm.message = "សូមបញ្ចូលឈ្មោះ និង លេខសម្ងាត់";
+                                } else if (backendMessage) {
+                                    vm.message = backendMessage;
                                 } else {
                                     vm.message = "មិនអាចភ្ជាប់ទៅ API បាន";
                                 }
@@ -407,3 +413,4 @@
     </script>
 </body>
 </html>
+

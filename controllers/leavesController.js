@@ -93,18 +93,11 @@ angular.module("hrApp").controller("LeaveController", function($scope, $http, $q
     }
 
     function getRequestConfig() {
-        var token = "";
-        try {
-            token = localStorage.getItem("auth_token") || "";
-        } catch (e) {
-            token = "";
-        }
-
-        var headers = { Accept: "application/json" };
-        if (token) {
-            headers.Authorization = "Bearer " + token;
-        }
-        return { headers: headers };
+        return {
+            headers: {
+                Accept: "application/json"
+            }
+        };
     }
 
     function shouldTryFallback(error) {

@@ -1,4 +1,25 @@
-﻿<!DOCTYPE html>
+﻿<?php
+$isHttps = (!empty($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] !== "off")
+    || (isset($_SERVER["SERVER_PORT"]) && (int) $_SERVER["SERVER_PORT"] === 443);
+session_set_cookie_params([
+    "lifetime" => 0,
+    "path" => "/",
+    "domain" => "",
+    "secure" => $isHttps,
+    "httponly" => true,
+    "samesite" => "Lax",
+]);
+session_start();
+header("Cache-Control: no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
+
+if (empty($_SESSION["auth_token"])) {
+    header("Location: index.php");
+    exit;
+}
+?>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -6,15 +27,15 @@
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.32/angular.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.32/angular-route.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <script src="app.js?v=20260228-1"></script>
-    <script src="services/employeeService.js?v=20260224"></script>
-    <script src="services/departmentService.js?v=20260225-15"></script>
-    <script src="controllers/dashboardController.js?v=20260225-20"></script>
-    <script src="controllers/employeeController.js?v=20260225-15"></script>
-    <script src="controllers/attendance.js?v=20260225-18"></script>
-    <script src="controllers/leavesController.js?v=20260228-1"></script>
-    <script src="services/payrollService.js?v=20260226-1"></script>
-    <script src="controllers/payrollController.js?v=20260226-1"></script>
+    <script src="app.js"></script>
+    <script src="services/employeeService.js"></script>
+    <script src="services/departmentService.js"></script>
+    <script src="controllers/dashboardController.js"></script>
+    <script src="controllers/employeeController.js"></script>
+    <script src="controllers/attendance.js"></script>
+    <script src="controllers/leavesController.js"></script>
+    <script src="services/payrollService.js"></script>
+    <script src="controllers/payrollController.js"></script>
     <link rel="icon" type="image/png" href="images/usea.png">
     <title>USEA</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -427,11 +448,7 @@
             }
         });
         updateActiveState('input');
-        const AUTH_API_BASES = [
-            "/api",
-            "http://127.0.0.1:8000/api",
-            "http://localhost:8000/api"
-        ];
+        const AUTH_API_BASE = "api.php?path=";
 
         document.addEventListener("click", async function (e) {
             const logoutLink = e.target.closest('[data-nav="logout"]');
@@ -439,67 +456,42 @@
 
             e.preventDefault();
 
-            const token = localStorage.getItem("auth_token");
-            const authHeaders = {
-                "Accept": "application/json",
-                "Content-Type": "application/json",
-                "Authorization": "Bearer " + token
-            };
-
             try {
-                if (token) {
-                    for (const baseUrl of AUTH_API_BASES) {
-                        try {
-                            await fetch(baseUrl + "/logout", {
-                                method: "POST",
-                                headers: authHeaders
-                            });
-                            break;
-                        } catch (_) {}
-                    }
-                }
+                await fetch(AUTH_API_BASE + "logout", {
+                    method: "POST",
+                    headers: {
+                        "Accept": "application/json",
+                        "Content-Type": "application/json"
+                    },
+                    credentials: "include"
+                });
             } finally {
-                localStorage.removeItem("auth_token");
-                localStorage.removeItem("token_type");
-                localStorage.removeItem("auth_user");
+                sessionStorage.removeItem("show_dashboard_welcome");
+                sessionStorage.removeItem("auth_user_display_name");
                 window.location.href = "index.php";
             }
         });
 
         (async function () {
-            const token = localStorage.getItem("auth_token");
-            if (!token) {
-                window.location.replace("index.php");
-                return;
-            }
-
             try {
-                let isAuthenticated = false;
+                const res = await fetch(AUTH_API_BASE + "me", {
+                    method: "GET",
+                    headers: {
+                        "Accept": "application/json"
+                    },
+                    credentials: "include"
+                });
 
-                for (const baseUrl of AUTH_API_BASES) {
-                    try {
-                        const res = await fetch(baseUrl + "/me", {
-                            headers: {
-                                "Accept": "application/json",
-                                "Authorization": "Bearer " + token
-                            }
-                        });
-
-                        if (res.ok) {
-                            isAuthenticated = true;
-                            break;
-                        }
-                    } catch (_) {}
+                if (!res.ok) {
+                    throw new Error("Unauthenticated");
                 }
-
-                if (!isAuthenticated) throw new Error();
-            } catch {
-                localStorage.removeItem("auth_token");
-                localStorage.removeItem("token_type");
-                localStorage.removeItem("auth_user");
+            } catch (_) {
+                sessionStorage.removeItem("show_dashboard_welcome");
+                sessionStorage.removeItem("auth_user_display_name");
                 window.location.replace("index.php");
             }
         })();
     </script>
 </body>
 </html>
+

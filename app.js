@@ -14,11 +14,12 @@ app.config(function($routeProvider, $locationProvider, $httpProvider){
     }
 
     $httpProvider.defaults.headers.common.Accept = "application/json";
-    $httpProvider.defaults.withCredentials = true;
+    $httpProvider.defaults.withCredentials = false;
     $httpProvider.interceptors.push(function() {
-        var pathname = (window.location && window.location.pathname) ? window.location.pathname : "/";
-        var appBasePath = pathname.replace(/[^/]*$/, "");
-        var apiProxyBase = appBasePath + "api.php?path=";
+        var rawApiBase = (typeof window !== "undefined" && window.__API_BASE__)
+            ? String(window.__API_BASE__)
+            : "/api";
+        var apiBase = rawApiBase.replace(/\/+$/, "");
 
         return {
             request: function(config) {
@@ -26,17 +27,23 @@ app.config(function($routeProvider, $locationProvider, $httpProvider){
                     return config;
                 }
 
-                // Route same-origin API calls through the PHP auth proxy.
                 if (config.url.indexOf("/api/") === 0) {
-                    var proxied = apiProxyBase + encodeURIComponent(config.url.substring(5));
-                    config.url = proxied.replace(/%2F/g, "/");
+                    config.url = apiBase + config.url.substring(4);
                 } else if (config.url.indexOf("api/") === 0) {
-                    var relProxied = apiProxyBase + encodeURIComponent(config.url.substring(4));
-                    config.url = relProxied.replace(/%2F/g, "/");
+                    config.url = apiBase + "/" + config.url.substring(4);
                 } else if (config.url === "/api") {
-                    config.url = apiProxyBase;
+                    config.url = apiBase;
                 } else if (config.url === "api") {
-                    config.url = apiProxyBase;
+                    config.url = apiBase;
+                }
+
+                try {
+                    var token = window.sessionStorage.getItem("auth_token");
+                    if (token && !config.headers.Authorization) {
+                        config.headers.Authorization = "Bearer " + token;
+                    }
+                } catch (e) {
+                    // ignore storage access errors
                 }
 
                 return config;
@@ -129,5 +136,4 @@ app.directive("fileModel", ["$parse", function($parse){
         }
     };
 }]);
-
 

@@ -18,6 +18,19 @@ app.service("EmployeeService", function($http){
         formData.append("description", emp.description || "");
         formData.append("position", emp.position || "");
 
+        if (emp.department_id !== undefined && emp.department_id !== null && emp.department_id !== "") {
+            formData.append("department_id", emp.department_id);
+        }
+        if (emp.position_id !== undefined && emp.position_id !== null && emp.position_id !== "") {
+            formData.append("position_id", emp.position_id);
+        }
+        if (emp.department_name) {
+            formData.append("department_name", emp.department_name);
+        }
+        if (emp.position_name) {
+            formData.append("position_name", emp.position_name);
+        }
+
         if (emp.imageFile) {
             formData.append("image", emp.imageFile);
         }

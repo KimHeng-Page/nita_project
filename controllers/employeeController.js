@@ -331,6 +331,77 @@ app.controller("EmployeeController", function($scope, $location, $filter, $windo
             });
     }
 
+    function findDepartmentRecordByName(name){
+        var target = String(name || "").trim().toLowerCase();
+        if (!target) {
+            return null;
+        }
+
+        for (var i = 0; i < ($scope.departmentRecords || []).length; i++) {
+            var item = $scope.departmentRecords[i];
+            var itemName = String((item && item.name) || "").trim().toLowerCase();
+            if (itemName && itemName === target) {
+                return item;
+            }
+        }
+        return null;
+    }
+
+    function findDepartmentRecordByDescription(description, preferredName){
+        var target = String(description || "").trim().toLowerCase();
+        if (!target) {
+            return null;
+        }
+
+        var preferred = String(preferredName || "").trim().toLowerCase();
+        var fallback = null;
+
+        for (var i = 0; i < ($scope.departmentRecords || []).length; i++) {
+            var item = $scope.departmentRecords[i];
+            var itemDescription = String((item && item.description) || "").trim().toLowerCase();
+            if (!itemDescription || itemDescription !== target) {
+                continue;
+            }
+
+            var itemName = String((item && item.name) || "").trim().toLowerCase();
+            if (preferred && itemName === preferred) {
+                return item;
+            }
+            if (!fallback) {
+                fallback = item;
+            }
+        }
+
+        return fallback;
+    }
+
+    function buildEmployeeUpdatePayloadForValidation(){
+        var payload = angular.copy($scope.newEmployee || {});
+        var departmentText = String(payload.department || "").trim();
+        var positionText = String(payload.position || "").trim();
+        var matchedDepartment = findDepartmentRecordByName(departmentText);
+        var matchedPosition = findDepartmentRecordByDescription(positionText, departmentText);
+
+        if (departmentText) {
+            payload.department_name = departmentText;
+        }
+        if (positionText) {
+            payload.position_name = positionText;
+        }
+
+        if (matchedDepartment && matchedDepartment.id !== undefined && matchedDepartment.id !== null && matchedDepartment.id !== "") {
+            // Preserve free-text UI but send canonical ID to pass strict backend validation.
+            payload.department_id = matchedDepartment.id;
+            payload.department = matchedDepartment.id;
+        }
+
+        if (matchedPosition && matchedPosition.id !== undefined && matchedPosition.id !== null && matchedPosition.id !== "") {
+            payload.position_id = matchedPosition.id;
+        }
+
+        return payload;
+    }
+
     $scope.onDepartmentChange = function(){
         if (!$scope.isEditMode) {
             $scope.newEmployee.position = "";
@@ -498,7 +569,8 @@ app.controller("EmployeeController", function($scope, $location, $filter, $windo
         if (!$scope.editEmployeeId) {
             return;
         }
-        EmployeeService.update($scope.editEmployeeId, $scope.newEmployee)
+        var updatePayload = buildEmployeeUpdatePayloadForValidation();
+        EmployeeService.update($scope.editEmployeeId, updatePayload)
         .then(function(){
             $scope.showCreateModal = false;
             $scope.newEmployee = createEmptyEmployee();

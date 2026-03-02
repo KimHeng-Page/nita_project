@@ -1,5 +1,13 @@
 ﻿var app = angular.module("hrApp", ["ngRoute"]);
 
+var TEMPLATE_VERSION = (typeof window !== "undefined" && window.__TEMPLATE_VERSION__)
+    ? String(window.__TEMPLATE_VERSION__)
+    : String(Date.now());
+
+function withTemplateVersion(path) {
+    return path + "?v=" + encodeURIComponent(TEMPLATE_VERSION);
+}
+
 app.config(function($routeProvider, $locationProvider, $httpProvider){
     if ($locationProvider && typeof $locationProvider.hashPrefix === "function") {
         $locationProvider.hashPrefix("");
@@ -41,22 +49,22 @@ app.config(function($routeProvider, $locationProvider, $httpProvider){
         redirectTo: "/dashboard"
     })
     .when("/dashboard", {
-        templateUrl: "views/dashboard.html",
+        templateUrl: withTemplateVersion("views/dashboard.html"),
         controller: "DashboardController",
         title: "ផ្ទាំងគ្រប់គ្រង"
     })
     .when("/employees", {
-        templateUrl: "views/list.html",
+        templateUrl: withTemplateVersion("views/list.html"),
         controller: "EmployeeController",
         title: "គ្រប់គ្រងបុគ្គលិក"
     })
     .when("/department", {
-        templateUrl: "views/department.html",
+        templateUrl: withTemplateVersion("views/department.html"),
         controller: "DepartmentController",
         title: "គ្រប់គ្រងផ្នែក"
     })
     .when("/attendances", {
-        templateUrl: "views/attendance.html",
+        templateUrl: withTemplateVersion("views/attendance.html"),
         controller: "AttendanceController",
         title: "គ្រប់គ្រងវត្តមាន"
     })
@@ -64,12 +72,12 @@ app.config(function($routeProvider, $locationProvider, $httpProvider){
         redirectTo: "/attendances"
     })
     .when("/leaves", {
-        templateUrl: "views/leaves.html",
+        templateUrl: withTemplateVersion("views/leaves.html"),
         controller: "LeaveController",
         title: "គ្រប់គ្រងច្បាប់ឈប់សម្រាក"
     })
     .when("/payroll", {
-        templateUrl: "views/paryrolle.html",
+        templateUrl: withTemplateVersion("views/paryrolle.html"),
         controller: "PayrollController",
         title: "បញ្ជីប្រាក់បៀវត្ស"
     })
@@ -86,7 +94,7 @@ app.config(function($routeProvider, $locationProvider, $httpProvider){
         redirectTo: "/department"
     })
     .when("/add", {
-        templateUrl: "views/add.html",
+        templateUrl: withTemplateVersion("views/add.html"),
         controller: "EmployeeController",
         title: "បន្ថែមបុគ្គលិក"
     })
@@ -121,4 +129,5 @@ app.directive("fileModel", ["$parse", function($parse){
         }
     };
 }]);
+
 

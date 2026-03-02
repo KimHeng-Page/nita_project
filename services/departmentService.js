@@ -17,9 +17,25 @@ app.controller('DepartmentController', function($scope, $http, $filter) {
     };
     $scope.visiblePages = [];
 
+    function extractArray(payload) {
+        if (angular.isArray(payload)) {
+            return payload;
+        }
+        if (payload && angular.isArray(payload.data)) {
+            return payload.data;
+        }
+        if (payload && payload.data && angular.isArray(payload.data.data)) {
+            return payload.data.data;
+        }
+        return [];
+    }
+
     function buildDepartmentPayload(source) {
         var payload = angular.copy(source || {});
         delete payload._statusUpdating;
+        if (payload.status !== undefined) {
+            payload.status = normalizeStatus(payload.status);
+        }
         return payload;
     }
 
@@ -39,6 +55,15 @@ app.controller('DepartmentController', function($scope, $http, $filter) {
             return "inactive";
         }
         return "inactive";
+    }
+
+    function normalizeDepartment(item) {
+        var dept = angular.copy(item || {});
+        dept.id = dept.id;
+        dept.name = String(dept.name || "").trim();
+        dept.description = String(dept.description || "").trim();
+        dept.status = normalizeStatus(dept.status);
+        return dept;
     }
 
     $scope.isDepartmentActive = function(dept) {
@@ -92,7 +117,7 @@ app.controller('DepartmentController', function($scope, $http, $filter) {
 
     $scope.getPaginatedDepartments = function() {
         var start = ($scope.pagination.currentPage - 1) * $scope.pagination.pageSize;
-        return $scope.filteredDepartments.slice(start, start + $scope.pageSize);
+        return $scope.filteredDepartments.slice(start, start + $scope.pagination.pageSize);
     };
 
     $scope.goToPage = function(page) {
@@ -125,7 +150,12 @@ app.controller('DepartmentController', function($scope, $http, $filter) {
     $scope.loadDepartments = function() {
         $http.get('/api/departments')
             .then(function(response) {
-                $scope.departments = response.data;
+                var rows = extractArray(response.data);
+                $scope.departments = rows.map(normalizeDepartment);
+                refreshFilteredDepartments();
+            })
+            .catch(function() {
+                $scope.departments = [];
                 refreshFilteredDepartments();
             });
     };

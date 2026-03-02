@@ -2,7 +2,6 @@
     <div class="px-5 py-4 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
            <h2 class="text-lg font-semibold text-gray-800">បញ្ជីបុគ្គលិក</h2>
-           <p class="text-xs text-gray-500 mt-0.5">គ្រប់គ្រងឈ្មោះបុគ្គលិក និងមុខដំណែង</p>
         </div>
         <div class="w-full sm:w-auto flex flex-col sm:flex-row sm:items-center gap-2">
             <button
@@ -55,14 +54,12 @@
                     <td class="px-5 py-3 text-gray-700">{{emp.id}}</td>
                      <td class="px-5 py-3 font-medium text-gray-800">
                         <img
-                            ng-if="getImageUrl(getEmployeeImage(emp))"
-                            ng-src="{{getImageUrl(getEmployeeImage(emp))}}"
-                            ng-attr-data-fallback-src="{{getImageFallbackUrl(getEmployeeImage(emp))}}"
-                            onerror="if(this.dataset.fallbackApplied==='1'){this.style.display='none';return;}var fb=this.getAttribute('data-fallback-src');if(fb){this.dataset.fallbackApplied='1';this.src=fb;}else{this.style.display='none';}"
-                            alt="រូបភាព"
+                            ng-if="getImageUrl(emp.image)"
+                            ng-src="{{getImageUrl(emp.image)}}"
+                            alt="រូបភាំ"
                             class="h-10 w-10 rounded-[3px] object-cover border border-gray-200"
                         >
-                        <span ng-if="!getImageUrl(getEmployeeImage(emp))" class="text-xs text-gray-400">គ្មាន</span>
+                        <span ng-if="!getImageUrl(emp.image)" class="text-xs text-gray-400">គ្មាន</span>
                     </td>
                     <td class="px-5 py-3 font-medium text-gray-800">{{emp.fullname}}</td>
                     <td class="px-5 py-3 font-medium text-gray-800">{{emp.age}}</td>
@@ -98,40 +95,33 @@
         </table>
     </div>
 
-    <div class="px-5 py-4 border-t border-gray-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3" ng-if="filteredEmployees.length > 0">
-        <div class="flex items-center gap-2 text-sm text-gray-600">
-            <span>ជួរដេក:</span>
-            <select
-                ng-model="pagination.pageSize"
-                ng-change="changePageSize()"
-                ng-options="size for size in pagination.pageSizeOptions"
-                class="rounded-[3px] border border-gray-300 bg-white px-2 py-1 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            ></select>
-            <span>ទំព័រ {{pagination.currentPage}} / {{pagination.totalPages}}</span>
-        </div>
-        <div class="inline-flex items-center gap-1">
+    <div class="px-5 py-4 border-t border-gray-100 flex items-center justify-between gap-3">
+        <p class="text-sm text-gray-600 font-bold">ទំព័រ​ {{currentPage}} នៃ {{getTotalPages()}}</p>
+        <div class="inline-flex items-center gap-2">
             <button
                 type="button"
-                ng-click="prevPage()"
-                ng-disabled="pagination.currentPage === 1"
-                class="rounded-[3px] border border-gray-300 px-2.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                ng-click="goToPage(currentPage - 1)"
+                ng-disabled="currentPage === 1"
+                ng-class="{'opacity-50 cursor-not-allowed': currentPage === 1}"
+                class="rounded-[3px] border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 font-bold"
             >
-               ថយក្រោយ
+               ត្រឡប់
             </button>
             <button
                 type="button"
-                ng-repeat="page in visiblePages track by page"
-                ng-click="setPage(page)"
-                ng-class="page === pagination.currentPage ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
-                class="rounded-[3px] border px-2.5 py-1.5 text-xs font-semibold"
+                ng-repeat="page in getPageNumbers() track by page"
+                ng-click="goToPage(page)"
+                ng-class="{'bg-gray-200 text-white border-gray-200 hover:bg-gray-400': currentPage === page}"
+                class="rounded-[3px] border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 min-w-9 font-bold"
             >
                 {{page}}
             </button>
             <button
                 type="button"
-                ng-click="nextPage()"
-                ng-disabled="pagination.currentPage === pagination.totalPages"
-                class="rounded-[3px] border border-gray-300 px-2.5 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                ng-click="goToPage(currentPage + 1)"
+                ng-disabled="currentPage === getTotalPages()"
+                ng-class="{'opacity-50 cursor-not-allowed': currentPage === getTotalPages()}"
+                class="rounded-[3px] border border-gray-300 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50 font-bold"
             >
                បន្ទាប់
             </button>
@@ -233,10 +223,8 @@
                     class="w-full rounded-[3px] border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                 <img
-                    ng-if="isEditMode && getImageUrl(getEmployeeImage(newEmployee))"
-                    ng-src="{{getImageUrl(getEmployeeImage(newEmployee))}}"
-                    ng-attr-data-fallback-src="{{getImageFallbackUrl(getEmployeeImage(newEmployee))}}"
-                    onerror="if(this.dataset.fallbackApplied==='1'){this.style.display='none';return;}var fb=this.getAttribute('data-fallback-src');if(fb){this.dataset.fallbackApplied='1';this.src=fb;}else{this.style.display='none';}"
+                    ng-if="isEditMode && getImageUrl(newEmployee.image)"
+                    ng-src="{{getImageUrl(newEmployee.image)}}"
                     alt="Current employee image"
                     class="mt-2 h-12 w-12 rounded-[3px] object-cover border border-gray-200"
                 >
@@ -248,6 +236,7 @@
                     id="modal-employee-department-select"
                     ng-if="!isEditMode"
                     ng-model="newEmployee.department"
+                    ng-change="onDepartmentChange()"
                     required
                     class="w-full rounded-[3px] border border-gray-300 px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
@@ -260,8 +249,8 @@
                     </option>
                 </select>
                 <input
-                    id="modal-employee-department-input"
                     ng-if="isEditMode"
+                    id="modal-employee-department"
                     type="text"
                     ng-model="newEmployee.department"
                     required
@@ -288,8 +277,8 @@
                     </option>
                 </select>
                 <input
-                    id="modal-employee-position-input"
                     ng-if="isEditMode"
+                    id="modal-employee-position"
                     type="text"
                     ng-model="newEmployee.position"
                     required
@@ -350,14 +339,12 @@
         <div class="p-5 space-y-4">
             <div class="rounded-[5px] border border-gray-100 bg-gray-50 px-4 py-5">
                 <img
-                    ng-if="getImageUrl(getEmployeeImage(selectedEmployee))"
-                    ng-src="{{getImageUrl(getEmployeeImage(selectedEmployee))}}"
-                    ng-attr-data-fallback-src="{{getImageFallbackUrl(getEmployeeImage(selectedEmployee))}}"
-                    onerror="if(this.dataset.fallbackApplied==='1'){this.style.display='none';return;}var fb=this.getAttribute('data-fallback-src');if(fb){this.dataset.fallbackApplied='1';this.src=fb;}else{this.style.display='none';}"
-                    alt="រូបភាព"
+                    ng-if="getImageUrl(selectedEmployee.image)"
+                    ng-src="{{getImageUrl(selectedEmployee.image)}}"
+                    alt="Employee image"
                     class="h-24 w-24 rounded-[5px] object-cover border border-gray-200 mx-auto"
                 >
-                <div ng-if="!getImageUrl(getEmployeeImage(selectedEmployee))" class="h-24 w-24 rounded-[5px] border border-gray-200 bg-white flex items-center justify-center text-xs text-gray-400 mx-auto">
+                <div ng-if="!getImageUrl(selectedEmployee.image)" class="h-24 w-24 rounded-[5px] border border-gray-200 bg-white flex items-center justify-center text-xs text-gray-400 mx-auto">
                     គ្មានរូបភាព
                 </div>
                 <div class="min-w-0 mt-3 text-center">
